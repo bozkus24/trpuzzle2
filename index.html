@@ -5,34 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Kesme — Günlük Şekil Bulmacası</title>
 <meta name="description" content="Cutle'dan ilhamla: Her gün gelen şekli tek çizgiyle olabildiğince 50:50 ikiye böl.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#faf9f6; --panel:#ffffff; --board:#f4f2ec; --line:#e7e3da;
-    --ink:#1c1d21; --muted:#8b8a86;
-    --accent:#e30a17; --accent-soft:#fbe7e8;
-    --sideA:#e05a4f; --sideA-ink:#b23b32;
-    --sideB:#5a6472; --sideB-ink:#3d4552;
-    --shape:#2b3038; --cutline:#16181d;
-    --shadow:rgba(30,25,20,.10);
-    --win:#1a8a4a; --lose:#c0392b;
+    --bg:#fff7ec; --panel:#ffffff; --board:#fff1db; --line:#f3e2c6;
+    --ink:#3a2417; --muted:#a8896b;
+    --accent:#e73f1e; --accent-soft:#fce3d8;
+    --sideA:#e73f1e; --sideA-ink:#b32e13;
+    --sideB:#f9b637; --sideB-ink:#d6961f;
+    --shape:#fb6c00; --cutline:#3a2417;
+    --shadow:rgba(120,60,20,.14);
+    --win:#1f9d55; --lose:#e73f1e;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#101216; --panel:#171a20; --board:#12151a; --line:#252a33;
-      --ink:#eceef2; --muted:#8a909b;
-      --accent:#ff4d57; --accent-soft:#2a1416;
-      --sideA:#f0705f; --sideA-ink:#ff9285;
-      --sideB:#8b93a3; --sideB-ink:#aab2c1;
-      --shape:#dfe3ea; --cutline:#f4f6fa;
-      --shadow:rgba(0,0,0,.45);
-      --win:#3ddc84; --lose:#ff6b5e;
+      --bg:#1a120b; --panel:#241813; --board:#1e140d; --line:#3a2a1c;
+      --ink:#fbead2; --muted:#b79877;
+      --accent:#fb6c00; --accent-soft:#3a2113;
+      --sideA:#e73f1e; --sideA-ink:#ff7a5c;
+      --sideB:#f9b637; --sideB-ink:#ffd06b;
+      --shape:#fb6c00; --cutline:#fff6e4;
+      --shadow:rgba(0,0,0,.5);
+      --win:#3ddc84; --lose:#ff6b4a;
     }
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
   body{
     background:var(--bg); color:var(--ink);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-family:"Frank Ruhl Libre",Georgia,"Times New Roman",serif;
     min-height:100vh; display:flex; flex-direction:column; align-items:center;
     -webkit-font-smoothing:antialiased;
   }
@@ -43,7 +46,7 @@
   .brand{display:flex; flex-direction:column; gap:2px;}
   .wordmark{display:flex; align-items:baseline; gap:8px;}
   h1{
-    font-family:Georgia,"Times New Roman",serif;
+    font-family:"Frank Ruhl Libre",Georgia,serif;
     font-size:30px; margin:0; font-weight:700; letter-spacing:.3px;
   }
   .pill{
@@ -78,7 +81,7 @@
   .result{text-align:center; display:none;}
   .result.show{display:block; animation:fade .4s ease;}
   @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
-  .ratio{font-family:Georgia,serif; font-size:44px; font-weight:700; line-height:1;}
+  .ratio{font-family:"Frank Ruhl Libre",Georgia,serif; font-size:44px; font-weight:700; line-height:1;}
   .ratio .l{color:var(--sideA-ink);} .ratio .r{color:var(--sideB-ink);} .ratio .sep{color:var(--muted); font-weight:400; margin:0 4px;}
   .verdict{font-size:15px; font-weight:700; margin-top:8px; letter-spacing:.3px;}
   .verdict.win{color:var(--win);} .verdict.lose{color:var(--lose);}
@@ -108,13 +111,13 @@
   .sheet{background:var(--panel); border:1px solid var(--line); border-radius:22px 22px 0 0; max-width:460px; width:100%; padding:24px; max-height:90vh; overflow:auto; animation:up .28s ease;}
   @media(min-width:520px){.sheet{border-radius:22px;}}
   @keyframes up{from{transform:translateY(20px); opacity:.6;} to{transform:none; opacity:1;}}
-  .sheet h2{font-family:Georgia,serif; margin:0 0 14px; font-size:22px;}
+  .sheet h2{font-family:"Frank Ruhl Libre",Georgia,serif; margin:0 0 14px; font-size:22px;}
   .sheet p,.sheet li{color:var(--ink); font-size:14px; line-height:1.6;}
   .sheet .muted{color:var(--muted);}
   .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; margin:-8px -6px 0 0; line-height:1;}
   .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0 6px;}
   .stat{text-align:center;}
-  .stat .n{font-family:Georgia,serif; font-size:26px; font-weight:700;}
+  .stat .n{font-family:"Frank Ruhl Libre",Georgia,serif; font-size:26px; font-weight:700;}
   .stat .t{font-size:10px; color:var(--muted); letter-spacing:.4px; margin-top:2px;}
   footer{color:var(--muted); font-size:11.5px; padding:0 20px 28px; text-align:center; max-width:460px; line-height:1.5;}
   footer a{color:var(--muted);}
