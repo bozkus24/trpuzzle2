@@ -16,21 +16,21 @@
     --bg:#000000; --pill:#15171c; --sheet:#131519;
     --line:rgba(255,255,255,.10);
     --ink:#f0f2f6; --muted:#98a2b2;
-    --board-bg:#111318; --board-shadow:inset 0 0 42px rgba(0,0,0,.55);
-    --cutline:#f4f0e4;
-    /* Kesim paleti (arka plan hariç şekil/parça/vurgu için) — her iki temada sabit */
-    --c1:#ec8f8d; --c2:#537d96; --c3:#44a194; --c4:#f4f0e4;
-    --accent:#44a194;
-    --sideA:#44a194; --sideA-edge:#f4f0e4;
-    --sideB:#ec8f8d; --sideB-edge:#f4f0e4;
+    --board-bg:#111318; --board-shadow:inset 0 0 42px rgba(0,0,0,.5);
+    --cutline:#f6ecd9;
+    /* Uyumlu "sandy earth" kesim paleti (arka plan hariç şekil/parça/vurgu) */
+    --c1:#e76f51; --c2:#6e97a8; --c3:#2a9d8f; --c4:#f6ecd9;
+    --accent:#2a9d8f;
+    --sideA:#2a9d8f; --sideA-edge:#227e72;
+    --sideB:#f4a261; --sideB-edge:#d98544;
   }
   /* ---- AYDINLIK: beyaz zemin ---- */
   :root[data-theme="light"]{
-    --bg:#ffffff; --pill:#f1f3f5; --sheet:#ffffff;
+    --bg:#ffffff; --pill:#f3f4f6; --sheet:#ffffff;
     --line:rgba(0,0,0,.12);
-    --ink:#15181d; --muted:#5f6a76;
+    --ink:#233038; --muted:#5f6a76;
     --board-bg:#ffffff; --board-shadow:none;
-    --cutline:#2c3a45;
+    --cutline:#264653;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
@@ -65,8 +65,8 @@
   .wordmark{
     font-size:34px; font-weight:700; letter-spacing:5px; line-height:1; user-select:none;
   }
-  .wordmark .w1{color:var(--ink); text-shadow:-2.5px 2.5px 0 rgba(236,143,141,.45);}
-  .wordmark .w2{color:var(--accent); text-shadow:2.5px 2.5px 0 rgba(68,161,148,.30);}
+  .wordmark .w1{color:var(--ink); text-shadow:-2.5px 2.5px 0 rgba(231,111,81,.40);}
+  .wordmark .w2{color:var(--accent); text-shadow:2.5px 2.5px 0 rgba(244,162,97,.32);}
   select#mode{
     font-family:inherit; font-size:14px; color:var(--muted); font-weight:400;
     background:transparent; border:none; cursor:pointer; appearance:none; -webkit-appearance:none;
@@ -224,7 +224,7 @@
     <div class="board" id="board">
       <canvas id="cv"></canvas>
       <button class="play" id="play" title="Başlat">
-        <svg viewBox="0 0 24 24" fill="rgba(68,161,148,.12)" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M7.5 4.5l12 7.5-12 7.5z"/></svg>
+        <svg viewBox="0 0 24 24" fill="rgba(42,157,143,.14)" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M7.5 4.5l12 7.5-12 7.5z"/></svg>
       </button>
     </div>
   </div>
@@ -410,11 +410,11 @@ function draw(){
   ctx.clearRect(0,0,size,size);
   if(state==="idle"||!shape)return;
   if(state==="done"&&cut){
-    fillPoly(clipHalf(scaled,cut.A,cut.N),cssVar('--sideA'),cssVar('--sideA-edge'),true);
-    fillPoly(clipHalf(scaled,cut.A,[-cut.N[0],-cut.N[1]]),cssVar('--sideB'),cssVar('--sideB-edge'),true);
+    fillPoly(clipHalf(scaled,cut.A,cut.N),cssVar('--sideA'),cssVar('--sideA-edge'),false);
+    fillPoly(clipHalf(scaled,cut.A,[-cut.N[0],-cut.N[1]]),cssVar('--sideB'),cssVar('--sideB-edge'),false);
     drawSegment(cut.p1,cut.p2,true);
   }else{
-    fillPoly(scaled,cssVar('--c2'),null,true);
+    fillPoly(scaled,cssVar('--c2'),null,false);
     if(start&&end)drawSegment(start,end,false); /* çizgi: bastığın noktadan şu anki noktaya */
   }
 }
@@ -574,7 +574,7 @@ function copy(t){
 }
 
 /* ---------- vurgu rengi ---------- */
-const PALETTE=[{n:"Teal",v:"#44a194"},{n:"Mavi-gri",v:"#537d96"},{n:"Mercan",v:"#ec8f8d"},{n:"Krem",v:"#f4f0e4"}];
+const PALETTE=[{n:"Teal",v:"#2a9d8f"},{n:"Amber",v:"#f4a261"},{n:"Mercan",v:"#e76f51"},{n:"Mavi-gri",v:"#457b9d"}];
 function applyAccent(v){
   document.documentElement.style.setProperty('--accent',v);
   try{localStorage.setItem('kesme-accent',v);}catch(e){}
