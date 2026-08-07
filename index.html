@@ -3,33 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="color-scheme" content="light only">
 <title>Kesme — Günlük Şekil Bulmacası</title>
 <meta name="description" content="Cutle'dan ilhamla: Her gün gelen şekli tek çizgiyle olabildiğince 50:50 ikiye böl.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
+  /* Sıcak Color Hunt paleti — her zaman açık tema (#E73F1E #FB6C00 #F9B637 #FFDD9C) */
   :root{
-    --bg:#fff7ec; --panel:#ffffff; --board:#fff1db; --line:#f3e2c6;
-    --ink:#3a2417; --muted:#a8896b;
-    --accent:#e73f1e; --accent-soft:#fce3d8;
-    --sideA:#e73f1e; --sideA-ink:#b32e13;
-    --sideB:#f9b637; --sideB-ink:#d6961f;
-    --shape:#fb6c00; --cutline:#3a2417;
-    --shadow:rgba(120,60,20,.14);
+    --bg:#ffdd9c; --panel:#ffffff; --board:#fffaf0; --line:#f1dcae;
+    --ink:#4a2412; --muted:#a9793f;
+    --accent:#e73f1e; --accent-soft:#ffe0cd;
+    --sideA:#e73f1e; --sideA-ink:#a82c12;
+    --sideB:#f9b637; --sideB-ink:#c98a17;
+    --shape:#fb6c00; --cutline:#4a2412;
+    --shadow:rgba(150,80,20,.18);
     --win:#1f9d55; --lose:#e73f1e;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --bg:#1a120b; --panel:#241813; --board:#1e140d; --line:#3a2a1c;
-      --ink:#fbead2; --muted:#b79877;
-      --accent:#fb6c00; --accent-soft:#3a2113;
-      --sideA:#e73f1e; --sideA-ink:#ff7a5c;
-      --sideB:#f9b637; --sideB-ink:#ffd06b;
-      --shape:#fb6c00; --cutline:#fff6e4;
-      --shadow:rgba(0,0,0,.5);
-      --win:#3ddc84; --lose:#ff6b4a;
-    }
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
@@ -339,8 +329,8 @@ function showResult(minPct,pl,pr){
   document.getElementById("resultMsg").textContent=r.m+"  ("+minPct.toFixed(1)+" : "+(100-minPct).toFixed(1)+")";
   document.getElementById("result").classList.add("show");
   const main=document.getElementById("btnMain");
-  if(practice){main.disabled=false;main.textContent="Tekrar dene ↻";main.dataset.act="again";}
-  else{main.disabled=true;main.textContent="Bugün için kilitlendi";main.dataset.act="";}
+  main.disabled=false;main.dataset.act="again";
+  main.textContent=practice?"↻ Tekrar dene":"↻ Yeniden oyna";
   document.getElementById("btnShare").style.display="inline-block";
   window._lastResult={minPct,pl,pr,name:shape.n,rating:r};
 }
@@ -386,7 +376,12 @@ document.getElementById("btnPractice").addEventListener("click",function(){
   this.classList.toggle("on",practice);
   if(practice)newPractice();else loadToday();
 });
-function newPractice(){shape=POOL[Math.floor(Math.random()*POOL.length)];setupShape();resetBoard();}
+function newPractice(){
+  practice=true;
+  document.getElementById("practiceBadge").classList.add("show");
+  document.getElementById("btnPractice").classList.add("on");
+  shape=POOL[Math.floor(Math.random()*POOL.length)];setupShape();resetBoard();
+}
 
 function setupShape(){
   document.getElementById("shapeName").textContent=shape.n;
@@ -411,8 +406,8 @@ function loadToday(){
   if(prev){
     resetBoard();locked=true;
     document.getElementById("hint").style.display="none";
-    document.getElementById("btnMain").disabled=true;
-    document.getElementById("btnMain").textContent="Bugün için kilitlendi";
+    const m=document.getElementById("btnMain");
+    m.disabled=false;m.dataset.act="again";m.textContent="↻ Yeniden oyna";
     showResultFromSaved(prev);draw();
   }else resetBoard();
 }
@@ -427,7 +422,6 @@ function showResultFromSaved(prev){
   window._lastResult={minPct:prev.minPct,pl:prev.pl,pr:prev.pr,name:prev.name||shape.n,rating:r};
 }
 
-if(window.matchMedia){window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();draw();});}
 window.addEventListener("resize",resize);
 resize();loadToday();
 })();
