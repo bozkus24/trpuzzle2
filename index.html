@@ -5,193 +5,242 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="dark">
 <title>KESME — Günlük Şekil Kesme Bulmacası</title>
-<meta name="description" content="Cutle tarzı: Her gün gelen şekli tek çizgiyle tam ortadan ikiye böl.">
+<meta name="description" content="Her gün gelen şekli tek çizgiyle tam ortadan ikiye böl.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    /* dark ground (cutle.org düzeni) + KESİN sıcak palet vurguları */
-    --bg:#191622; --bg2:#221c2c; --panel:#241d2f; --disc:#1d1727;
-    --line:#352c46; --ink:#f6efe6; --muted:#9a8ba0;
+    --bg:#0e1522; --bg-top:#15202f; --pill:#182234; --sheet:#131c2b;
+    --line:rgba(255,255,255,.08); --halo:rgba(255,221,156,.10);
+    --ink:#e9edf4; --muted:#8b97ab;
+    /* Color Hunt paleti */
     --c1:#e73f1e; --c2:#fb6c00; --c3:#f9b637; --c4:#ffdd9c;
-    --accent:#fb6c00;                 /* değişebilir (paletten) */
-    --sideA:#e73f1e; --sideA-ink:#ff8a6b;
-    --sideB:#f9b637; --sideB-ink:#ffd06b;
-    --shape:#fb6c00; --cutline:#ffdd9c;
+    --accent:#fb6c00;
+    --sideA:#e73f1e; --sideA-edge:#ff8a66;
+    --sideB:#f9b637; --sideB-edge:#ffd678;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
   body{
-    background:
-      radial-gradient(1000px 500px at 50% -8%, #2a2136 0%, var(--bg) 55%);
+    background:radial-gradient(900px 420px at 50% -6%, var(--bg-top), var(--bg) 62%);
     color:var(--ink);
     font-family:"Space Mono","SFMono-Regular",Menlo,Consolas,monospace;
     min-height:100vh; display:flex; flex-direction:column; align-items:center;
     -webkit-font-smoothing:antialiased;
   }
 
-  /* ---------- top bar ---------- */
-  .topbar{width:100%; max-width:760px; padding:16px 18px 4px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px;}
-  .left{justify-self:start; display:flex;}
-  .center{justify-self:center; display:flex; align-items:center; gap:12px;}
-  .right{justify-self:end; display:flex; gap:8px;}
-  .wordmark{font-weight:700; font-size:30px; letter-spacing:4px; line-height:1;
-    text-shadow:2px 2px 0 rgba(0,0,0,.45), 3px 3px 0 rgba(0,0,0,.25);}
-  .wordmark .a{color:var(--accent);}
-  .wordmark .b{color:#e9e3ee;}
-  select#mode{
-    font-family:inherit; font-size:13px; font-weight:700; color:var(--ink);
-    background:var(--panel); border:1px solid var(--line); border-radius:8px;
-    padding:7px 26px 7px 10px; cursor:pointer; appearance:none;
-    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-    background-position:calc(100% - 14px) 55%, calc(100% - 9px) 55%; background-size:5px 5px,5px 5px; background-repeat:no-repeat;
+  /* ------- top bar ------- */
+  .topbar{
+    width:100%; max-width:980px; padding:18px 22px 0;
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
   }
+  .tb-left{justify-self:start;} .tb-right{justify-self:end; display:flex; gap:2px;}
+  .tb-center{justify-self:center; display:flex; align-items:baseline; gap:16px;}
   .iconbtn{
-    width:38px; height:38px; border-radius:9px; background:transparent; border:1px solid var(--line);
-    color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.15s;
+    background:none; border:none; padding:8px; border-radius:8px; cursor:pointer;
+    color:var(--muted); display:flex; align-items:center; gap:4px; transition:color .15s;
   }
-  .iconbtn:hover{color:var(--ink); border-color:var(--accent);}
-  .iconbtn.on{color:var(--accent); border-color:var(--accent);}
-  .iconbtn svg{width:18px; height:18px;}
-  .palette-dot{width:22px; height:22px; border-radius:50%; border:2px solid #0006;
+  .iconbtn:hover{color:var(--ink);}
+  .iconbtn svg{width:20px; height:20px;}
+  .pal-dot{width:20px; height:20px; border-radius:50%;
+    background:conic-gradient(var(--c1) 0 25%,var(--c2) 0 50%,var(--c3) 0 75%,var(--c4) 0);
+    box-shadow:0 0 0 1.5px rgba(255,255,255,.18);}
+  .chev{font-size:10px; color:var(--muted);}
+  .wordmark{
+    font-size:34px; font-weight:700; letter-spacing:5px; line-height:1; user-select:none;
+  }
+  .wordmark .w1{color:#eef2f8; text-shadow:-2.5px 2.5px 0 rgba(231,63,30,.55);}
+  .wordmark .w2{color:var(--c2); text-shadow:2.5px 2.5px 0 rgba(249,182,55,.35);}
+  select#mode{
+    font-family:inherit; font-size:14px; color:var(--muted); font-weight:400;
+    background:transparent; border:none; cursor:pointer; appearance:none; -webkit-appearance:none;
+    padding-right:16px;
+    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+    background-position:right 6px top 55%, right 2px top 55%;
+    background-size:4.5px 4.5px; background-repeat:no-repeat;
+  }
+  select#mode:hover{color:var(--ink);}
+  select#mode option{background:var(--sheet); color:var(--ink);}
+
+  /* ------- pills row ------- */
+  .cdrow{margin-top:16px; display:flex; justify-content:center;}
+  .cd{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--pill); border:1px solid var(--line); border-radius:8px;
+    padding:7px 14px; font-size:12.5px; color:var(--muted);
+  }
+  .cd svg{width:14px; height:14px;}
+  .cd b{color:var(--c3); font-weight:700; letter-spacing:.5px;}
+  .scorerow{margin-top:12px; display:flex; justify-content:center; align-items:center; gap:10px; min-height:30px;}
+  .score{
+    background:var(--pill); border:1px solid var(--line); border-radius:8px;
+    padding:6px 12px; font-size:12.5px; color:var(--muted);
+  }
+  .score b{color:var(--c3);}
+  .wheel{width:18px; height:18px; border-radius:50%;
     background:conic-gradient(var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));}
 
-  /* ---------- meta line ---------- */
-  .countdown{margin-top:10px; font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:7px;}
-  .countdown b{color:var(--c3); font-weight:700;}
-  .scorebadge{margin-top:12px; display:inline-flex; align-items:center; gap:8px;
-    background:var(--panel); border:1px solid var(--line); border-radius:999px; padding:6px 8px 6px 14px; font-size:12.5px;}
-  .scorebadge .v{color:var(--accent); font-weight:700;}
-  .scorebadge .dot{width:16px; height:16px; border-radius:50%;
-    background:conic-gradient(var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));}
-
-  /* ---------- stage ---------- */
-  main{width:100%; max-width:760px; padding:6px 18px 40px; display:flex; flex-direction:column; align-items:center; gap:18px;}
-  .stage{display:flex; flex-direction:column; align-items:center; gap:20px; margin-top:8px;}
-  .ring{
-    position:relative; width:min(80vw,360px); aspect-ratio:1; border-radius:50%;
-    background:radial-gradient(circle at 50% 42%, #251d31, var(--disc) 72%);
-    border:2px solid var(--accent);
-    box-shadow:0 0 34px -4px var(--accent), inset 0 0 60px rgba(0,0,0,.5);
+  /* ------- stage ------- */
+  main{width:100%; display:flex; flex-direction:column; align-items:center; padding:8px 16px 34px; gap:24px;}
+  .halo{
+    margin-top:14px;
+    width:min(88vw,470px); aspect-ratio:1; border-radius:50%;
+    border:1px solid var(--halo);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .board{
+    position:relative; width:72%; aspect-ratio:1; border-radius:50%;
+    border:2.5px solid var(--accent);
+    background:radial-gradient(circle at 50% 38%, #1b2637, #111927 72%);
+    box-shadow:0 0 46px -6px var(--accent), 0 0 110px -40px var(--accent), inset 0 0 52px rgba(0,0,0,.55);
     touch-action:none;
+  }
+  .board.playing{animation:breathe 3.2s ease-in-out infinite; cursor:crosshair;}
+  @keyframes breathe{
+    0%,100%{box-shadow:0 0 46px -6px var(--accent), 0 0 110px -40px var(--accent), inset 0 0 52px rgba(0,0,0,.55);}
+    50%{box-shadow:0 0 60px -4px var(--accent), 0 0 130px -34px var(--accent), inset 0 0 52px rgba(0,0,0,.55);}
+  }
+  .board.shake{animation:shake .45s ease;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-7px);} 40%{transform:translateX(6px);}
+    60%{transform:translateX(-4px);} 80%{transform:translateX(3px);}
   }
   canvas{position:absolute; inset:0; width:100%; height:100%; border-radius:50%;}
   .play{
-    position:absolute; inset:0; margin:auto; width:46%; height:46%; border-radius:50%;
-    border:2px solid var(--accent); color:var(--accent); background:rgba(251,108,0,.14);
-    display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.15s;
-    box-shadow:0 0 22px -6px var(--accent);
+    position:absolute; inset:0; margin:auto; width:52%; height:52%;
+    background:none; border:none; cursor:pointer; color:var(--accent);
+    display:flex; align-items:center; justify-content:center; transition:transform .18s;
+    filter:drop-shadow(0 0 14px rgba(251,108,0,.55));
   }
-  .play:hover{background:rgba(251,108,0,.24); transform:scale(1.04);}
-  .play svg{width:42%; height:42%; margin-left:8%; fill:currentColor; opacity:.95;}
-  .ring.playing .play, .ring.done .play{display:none;}
-  .ring.playing{cursor:crosshair;}
+  .play:hover{transform:scale(1.07);}
+  .play svg{width:78%; height:78%; margin-left:9%;}
+  .board.playing .play, .board.done .play{display:none;}
 
-  .tagline{font-size:15px; color:var(--ink); text-align:center; min-height:22px; letter-spacing:.4px;}
-  .tagline .big{font-size:26px; font-weight:700;}
+  /* ------- tagline / result ------- */
+  .tagline{min-height:64px; text-align:center; font-size:16px; letter-spacing:.4px; line-height:1.5; color:#dbe3ef; padding:0 12px;}
+  .tagline .sub{display:block; font-size:12.5px; color:var(--muted); margin-top:6px;}
+  .tagline .pct{font-size:34px; font-weight:700; color:var(--c4); letter-spacing:1px;}
   .tagline .win{color:var(--c3);} .tagline .lose{color:var(--c1);}
-  .tagline .sub{display:block; color:var(--muted); font-size:12.5px; margin-top:4px;}
+  .tagline .warn{color:var(--c1); font-weight:700;}
 
-  .actions{display:flex; gap:10px; min-height:0;}
+  .actions{display:flex; gap:10px;}
   .actions.hide{display:none;}
   button.act{
-    font-family:inherit; font-size:14px; font-weight:700; letter-spacing:.4px; cursor:pointer;
-    padding:12px 20px; border-radius:11px; border:1px solid var(--line); background:var(--panel); color:var(--ink); transition:.15s;
+    font-family:inherit; font-size:13.5px; font-weight:700; letter-spacing:.6px; cursor:pointer;
+    padding:12px 22px; border-radius:10px; border:1px solid var(--line);
+    background:var(--pill); color:var(--ink); transition:.15s;
   }
-  button.act.primary{background:var(--accent); border-color:var(--accent); color:#231200;}
-  button.act:hover{filter:brightness(1.08);}
+  button.act:hover{border-color:var(--accent); color:var(--c4);}
+  button.act.primary{background:var(--accent); border-color:var(--accent); color:#221204;}
+  button.act.primary:hover{filter:brightness(1.1); color:#221204;}
   button.act:active{transform:translateY(1px);}
 
-  /* ---------- modal ---------- */
-  .modal{position:fixed; inset:0; background:rgba(10,8,14,.66); display:none; align-items:center; justify-content:center; padding:18px; z-index:30;}
+  footer{color:#5b6980; font-size:11px; padding:0 18px 26px; text-align:center; max-width:560px; line-height:1.6;}
+  footer a{color:#748399;}
+
+  /* ------- modals ------- */
+  .modal{position:fixed; inset:0; background:rgba(6,9,15,.72); display:none; align-items:center; justify-content:center; padding:18px; z-index:30;}
   .modal.show{display:flex;}
-  .sheet{background:var(--bg2); border:1px solid var(--line); border-radius:16px; max-width:440px; width:100%; padding:24px; max-height:88vh; overflow:auto;}
-  .sheet h2{margin:0 0 14px; font-size:20px; letter-spacing:1px;}
-  .sheet h2 .a{color:var(--accent);}
-  .sheet p,.sheet li{font-size:13.5px; line-height:1.65; color:#d8cfe0;}
-  .sheet .muted{color:var(--muted);}
-  .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; margin:-8px -6px 0 0;}
-  .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0 6px;}
-  .stat{text-align:center; background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:12px 4px;}
-  .stat .n{font-size:22px; font-weight:700; color:var(--accent);}
-  .stat .t{font-size:9.5px; color:var(--muted); letter-spacing:.3px; margin-top:3px;}
-  .swatches{display:flex; gap:8px; margin-top:10px;}
-  .swatch{flex:1; height:34px; border-radius:8px; border:1px solid #0004; cursor:pointer;}
-  .swatch.sel{outline:2px solid var(--ink); outline-offset:2px;}
-  footer{color:var(--muted); font-size:11px; padding:0 18px 26px; text-align:center; max-width:520px; line-height:1.5;}
-  footer a{color:var(--muted);}
+  .sheet{background:var(--sheet); border:1px solid var(--line); border-radius:16px; max-width:460px; width:100%; padding:26px; max-height:88vh; overflow:auto;}
+  .sheet h2{margin:0 0 16px; font-size:19px; letter-spacing:2px;}
+  .sheet h2 span{color:var(--accent);}
+  .sheet p,.sheet li{font-size:13.5px; line-height:1.7; color:#c6d0de;}
+  .sheet li{margin-bottom:6px;}
+  .sheet .muted{color:var(--muted); font-size:12.5px;}
+  .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; margin:-10px -8px 0 0;}
+  .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:18px 0 8px;}
+  .stat{text-align:center; background:var(--pill); border:1px solid var(--line); border-radius:10px; padding:14px 4px;}
+  .stat .n{font-size:21px; font-weight:700; color:var(--c3);}
+  .stat .t{font-size:9px; color:var(--muted); letter-spacing:.4px; margin-top:4px;}
+  .swatches{display:flex; gap:10px; margin-top:14px;}
+  .swatch{flex:1; height:40px; border-radius:9px; cursor:pointer; border:none; transition:transform .12s;}
+  .swatch:hover{transform:translateY(-2px);}
+  .swatch.sel{outline:2.5px solid var(--ink); outline-offset:2.5px;}
+
+  @media(max-width:560px){
+    .wordmark{font-size:26px; letter-spacing:4px;}
+    .topbar{padding:14px 12px 0;}
+    .tb-center{gap:10px;}
+  }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="left">
-    <button class="iconbtn" id="btnPalette" title="Renk paleti"><span class="palette-dot"></span></button>
+  <div class="tb-left">
+    <button class="iconbtn" id="btnPalette" title="Vurgu rengi"><span class="pal-dot"></span><span class="chev">▾</span></button>
   </div>
-  <div class="center">
-    <div class="wordmark"><span class="b">KES</span><span class="a">ME</span></div>
+  <div class="tb-center">
+    <div class="wordmark"><span class="w1">KES</span><span class="w2">ME</span></div>
     <select id="mode" title="Mod">
       <option value="daily">günlük</option>
       <option value="practice">antrenman</option>
     </select>
   </div>
-  <div class="right">
-    <button class="iconbtn" id="btnArchive" title="Arşiv / rastgele şekil">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+  <div class="tb-right">
+    <button class="iconbtn" id="btnArchive" title="Rastgele şekil (antrenman)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
     </button>
     <button class="iconbtn" id="btnStats" title="İstatistik">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V10M12 21V4M19 21v-7"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V11M12 21V4M19 21v-6"/></svg>
     </button>
     <button class="iconbtn" id="btnHelp" title="Nasıl oynanır">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a2.8 2.8 0 1 1 3.6 2.7c-.7.3-1.3.9-1.3 1.8v.4"/><circle cx="12" cy="17.5" r="0.6" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.2a2.7 2.7 0 1 1 3.5 2.6c-.7.3-1.3.9-1.3 1.7v.5"/><circle cx="11.9" cy="17.3" r="0.5" fill="currentColor"/></svg>
     </button>
   </div>
 </div>
 
 <main>
-  <div class="countdown" id="countdown">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>
-    <span>Yeni şekil: <b id="cdTime">--:--:--</b> UTC</span>
+  <div class="cdrow">
+    <span class="cd">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9.5v3.8l2.6 1.6M9.5 2.5h5"/></svg>
+      <span>Yeni şekil: <b id="cdTime">--:--:--</b> UTC</span>
+    </span>
   </div>
 
-  <div class="scorebadge" id="scorebadge"><span>Son:&nbsp;<span class="v" id="scoreVal">—</span></span><span class="dot"></span></div>
+  <div class="scorerow">
+    <span class="score" id="scorePill" style="visibility:hidden;">Skor(<b id="scoreVal">—</b>)</span>
+    <span class="wheel"></span>
+  </div>
 
-  <div class="stage">
-    <div class="ring" id="ring">
+  <div class="halo">
+    <div class="board" id="board">
       <canvas id="cv"></canvas>
       <button class="play" id="play" title="Başlat">
-        <svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>
+        <svg viewBox="0 0 24 24" fill="rgba(251,108,0,.10)" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M7.5 4.5l12 7.5-12 7.5z"/></svg>
       </button>
     </div>
+  </div>
 
-    <div class="tagline" id="tagline">Şekli tam ortadan ikiye böl!</div>
+  <div class="tagline" id="tagline">Şekli tam ortadan ikiye böl!</div>
 
-    <div class="actions hide" id="actions">
-      <button class="act primary" id="btnAgain">↻ Yeniden oyna</button>
-      <button class="act" id="btnShare">Paylaş</button>
-    </div>
+  <div class="actions hide" id="actions">
+    <button class="act primary" id="btnAgain">↻ YENİDEN</button>
+    <button class="act" id="btnShare">PAYLAŞ</button>
   </div>
 </main>
 
 <footer>
-  <a href="https://cutle.org/" target="_blank" rel="noopener">Cutle</a> örnek alınarak Türkiye için uyarlandı · Şekiller çoğunlukla geometrik, aralarında Türkiye temalı formlar var.
+  <a href="https://cutle.org/" target="_blank" rel="noopener">Cutle</a> örnek alınarak Türkiye için uyarlandı.
 </footer>
 
 <!-- HELP -->
 <div class="modal" id="helpModal">
   <div class="sheet">
     <button class="close" data-close>×</button>
-    <h2>NASIL <span class="a">OYNANIR</span></h2>
-    <p>Ortadaki <b>başlat</b> düğmesine bas; bir <b>şekil</b> gelir. Amacın onu tek düz çizgiyle tam ortadan <b>50:50</b> ikiye bölmek.</p>
+    <h2>NASIL <span>OYNANIR</span></h2>
+    <p>Ortadaki <b>▶</b> düğmesine bas, bir şekil gelsin. Amacın onu <b>tek çizgiyle</b> tam ortadan <b>50:50</b> ikiye bölmek.</p>
     <ul>
-      <li>Şeklin üzerinde bir noktadan başlayıp <b>basılı tutarak sürükle</b>, başka bir noktada <b>bırak</b> — kesim orada gerçekleşir.</li>
-      <li>İstediğin açıdan kesebilirsin; çizgi sonsuza uzar.</li>
-      <li>Skor <b>%100</b> = kusursuz 50:50. <b>%96</b> ve üzeri (48:52) = kazandın.</li>
-      <li><b>günlük</b> modda günde tek hak; yeni şekil her gün 00:00 UTC'de gelir.</li>
-      <li><b>antrenman</b> modunda sınırsız denersin, günlük skorun etkilenmez.</li>
+      <li>Bir noktaya <b>basılı tut</b>, sürükle ve başka bir noktada <b>bırak</b> — çizgi tam olarak <b>başladığın noktadan bıraktığın noktaya</b> çizilir.</li>
+      <li>Çizgi şekli <b>bir kenarından girip öbür kenarından çıkmalı</b>; şekli baştan başa geçmeyen çizgi sayılmaz, tekrar denersin.</li>
+      <li>Geçerli kesimde skor kilitlenir: <b>%100</b> = kusursuz 50:50, <b>%96+</b> = kazandın.</li>
+      <li><b>günlük</b> modda günde tek hak — yeni şekil her gün 00:00 UTC'de.</li>
+      <li><b>antrenman</b> modunda sınırsız denersin; günlük skorun etkilenmez.</li>
     </ul>
-    <p class="muted">Sol üstteki renk düğmesi vurgu rengini palet içinde değiştirir.</p>
+    <p class="muted">Sol üstteki palet düğmesiyle vurgu rengini değiştirebilirsin.</p>
   </div>
 </div>
 
@@ -199,14 +248,14 @@
 <div class="modal" id="statsModal">
   <div class="sheet">
     <button class="close" data-close>×</button>
-    <h2><span class="a">İSTATİSTİK</span></h2>
+    <h2><span>İSTATİSTİK</span></h2>
     <div class="statgrid">
       <div class="stat"><div class="n" id="stPlayed">0</div><div class="t">OYNANAN</div></div>
       <div class="stat"><div class="n" id="stWin">0%</div><div class="t">KAZANMA</div></div>
       <div class="stat"><div class="n" id="stStreak">0</div><div class="t">SERİ</div></div>
       <div class="stat"><div class="n" id="stBest">—</div><div class="t">EN İYİ</div></div>
     </div>
-    <p class="muted">En iyi = bugüne kadarki en yüksek kusursuzluk yüzden (%100 = tam 50:50).</p>
+    <p class="muted">En iyi = bugüne kadarki en yüksek skor (%100 = tam 50:50).</p>
   </div>
 </div>
 
@@ -214,8 +263,8 @@
 <div class="modal" id="palModal">
   <div class="sheet">
     <button class="close" data-close>×</button>
-    <h2><span class="a">VURGU</span> RENGİ</h2>
-    <p class="muted">Aşağıdaki palet renklerinden birini seç:</p>
+    <h2>VURGU <span>RENGİ</span></h2>
+    <p class="muted">Palet renklerinden birini seç:</p>
     <div class="swatches" id="swatches"></div>
   </div>
 </div>
@@ -223,9 +272,11 @@
 <script>
 "use strict";
 (function(){
+/* ---------- rastgele & hash ---------- */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 
+/* ---------- şekil üreticileri ---------- */
 function regular(n,rot,r){r=r||0.44;rot=rot||0;const p=[];for(let i=0;i<n;i++){const a=rot+i/n*Math.PI*2;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
 function starShape(n,ro,ri,rot){rot=rot||-Math.PI/2;const p=[];for(let i=0;i<n*2;i++){const r=i%2?ri:ro;const a=rot+i/(n*2)*Math.PI*2;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
 function blob(seed,n){n=n||14;const rng=mulberry32(seed);const p=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const r=0.24+rng()*0.22;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
@@ -239,50 +290,69 @@ const TR={
   yildiz:starShape(5,0.47,0.19,-Math.PI/2)
 };
 const POOL=[
-  {n:"Üçgen",c:"geo",p:regular(3,-Math.PI/2,0.46)},
-  {n:"Kare",c:"geo",p:regular(4,-Math.PI/4,0.44)},
-  {n:"Beşgen",c:"geo",p:regular(5,-Math.PI/2,0.45)},
-  {n:"Altıgen",c:"geo",p:regular(6,0,0.45)},
-  {n:"Yedigen",c:"geo",p:regular(7,-Math.PI/2,0.45)},
-  {n:"Sekizgen",c:"geo",p:regular(8,Math.PI/8,0.45)},
-  {n:"On kenarlı",c:"geo",p:regular(10,-Math.PI/2,0.45)},
-  {n:"Eşkenar dörtgen",c:"geo",p:[[0.5,0.06],[0.82,0.5],[0.5,0.94],[0.18,0.5]]},
-  {n:"Paralelkenar",c:"geo",p:[[0.22,0.30],[0.90,0.30],[0.78,0.70],[0.10,0.70]]},
-  {n:"Yamuk",c:"geo",p:[[0.32,0.28],[0.68,0.28],[0.90,0.74],[0.10,0.74]]},
-  {n:"Beş köşeli yıldız",c:"geo",p:starShape(5,0.47,0.20,-Math.PI/2)},
-  {n:"Altı köşeli yıldız",c:"geo",p:starShape(6,0.47,0.24,-Math.PI/2)},
-  {n:"Yedi köşeli yıldız",c:"geo",p:starShape(7,0.47,0.22,-Math.PI/2)},
-  {n:"Artı",c:"geo",p:[[0.36,0.10],[0.64,0.10],[0.64,0.36],[0.90,0.36],[0.90,0.64],[0.64,0.64],[0.64,0.90],[0.36,0.90],[0.36,0.64],[0.10,0.64],[0.10,0.36],[0.36,0.36]]},
-  {n:"L şekli",c:"geo",p:[[0.20,0.12],[0.48,0.12],[0.48,0.60],[0.84,0.60],[0.84,0.88],[0.20,0.88]]},
-  {n:"T şekli",c:"geo",p:[[0.14,0.14],[0.86,0.14],[0.86,0.40],[0.63,0.40],[0.63,0.88],[0.37,0.88],[0.37,0.40],[0.14,0.40]]},
-  {n:"Ok",c:"geo",p:[[0.10,0.36],[0.55,0.36],[0.55,0.18],[0.92,0.50],[0.55,0.82],[0.55,0.64],[0.10,0.64]]},
-  {n:"Şeref köşesi",c:"geo",p:[[0.14,0.20],[0.50,0.42],[0.86,0.20],[0.86,0.50],[0.50,0.80],[0.14,0.50]]},
-  {n:"Damla",c:"geo",p:blob(101,16)},
-  {n:"Serbest form",c:"geo",p:blob(202,15)},
-  {n:"Amip",c:"geo",p:blob(303,18)},
-  {n:"Taş",c:"geo",p:blob(404,13)},
-  {n:"Bulut",c:"geo",p:blob(505,17)},
-  {n:"Ada",c:"geo",p:blob(606,14)},
-  {n:"Türkiye haritası",c:"tr",p:TR.turkiye},
-  {n:"Hilal (Ay)",c:"tr",p:TR.hilal},
-  {n:"Çay bardağı",c:"tr",p:TR.cay},
-  {n:"Lale",c:"tr",p:TR.lale},
-  {n:"Cezve",c:"tr",p:TR.cezve},
-  {n:"Yıldız (Bayrak)",c:"tr",p:TR.yildiz}
+  {n:"Üçgen",p:regular(3,-Math.PI/2,0.46)},
+  {n:"Kare",p:regular(4,-Math.PI/4,0.44)},
+  {n:"Beşgen",p:regular(5,-Math.PI/2,0.45)},
+  {n:"Altıgen",p:regular(6,0,0.45)},
+  {n:"Yedigen",p:regular(7,-Math.PI/2,0.45)},
+  {n:"Sekizgen",p:regular(8,Math.PI/8,0.45)},
+  {n:"On kenarlı",p:regular(10,-Math.PI/2,0.45)},
+  {n:"Eşkenar dörtgen",p:[[0.5,0.06],[0.82,0.5],[0.5,0.94],[0.18,0.5]]},
+  {n:"Paralelkenar",p:[[0.22,0.30],[0.90,0.30],[0.78,0.70],[0.10,0.70]]},
+  {n:"Yamuk",p:[[0.32,0.28],[0.68,0.28],[0.90,0.74],[0.10,0.74]]},
+  {n:"Beş köşeli yıldız",p:starShape(5,0.47,0.20,-Math.PI/2)},
+  {n:"Altı köşeli yıldız",p:starShape(6,0.47,0.24,-Math.PI/2)},
+  {n:"Yedi köşeli yıldız",p:starShape(7,0.47,0.22,-Math.PI/2)},
+  {n:"Artı",p:[[0.36,0.10],[0.64,0.10],[0.64,0.36],[0.90,0.36],[0.90,0.64],[0.64,0.64],[0.64,0.90],[0.36,0.90],[0.36,0.64],[0.10,0.64],[0.10,0.36],[0.36,0.36]]},
+  {n:"L şekli",p:[[0.20,0.12],[0.48,0.12],[0.48,0.60],[0.84,0.60],[0.84,0.88],[0.20,0.88]]},
+  {n:"T şekli",p:[[0.14,0.14],[0.86,0.14],[0.86,0.40],[0.63,0.40],[0.63,0.88],[0.37,0.88],[0.37,0.40],[0.14,0.40]]},
+  {n:"Ok",p:[[0.10,0.36],[0.55,0.36],[0.55,0.18],[0.92,0.50],[0.55,0.82],[0.55,0.64],[0.10,0.64]]},
+  {n:"Şeref köşesi",p:[[0.14,0.20],[0.50,0.42],[0.86,0.20],[0.86,0.50],[0.50,0.80],[0.14,0.50]]},
+  {n:"Damla",p:blob(101,16)},
+  {n:"Serbest form",p:blob(202,15)},
+  {n:"Amip",p:blob(303,18)},
+  {n:"Taş",p:blob(404,13)},
+  {n:"Bulut",p:blob(505,17)},
+  {n:"Ada",p:blob(606,14)},
+  {n:"Türkiye haritası",p:TR.turkiye},
+  {n:"Hilal",p:TR.hilal},
+  {n:"Çay bardağı",p:TR.cay},
+  {n:"Lale",p:TR.lale},
+  {n:"Cezve",p:TR.cezve},
+  {n:"Yıldız",p:TR.yildiz}
 ];
 
+/* ---------- geometri ---------- */
 function polyArea(pts){let a=0;for(let i=0;i<pts.length;i++){const p=pts[i],q=pts[(i+1)%pts.length];a+=p[0]*q[1]-q[0]*p[1];}return Math.abs(a)/2;}
 function clipHalf(pts,A,N){const res=[];const side=p=>N[0]*(p[0]-A[0])+N[1]*(p[1]-A[1]);const nn=pts.length;for(let i=0;i<nn;i++){const cur=pts[i],nxt=pts[(i+1)%nn];const sc=side(cur),sn=side(nxt);if(sc>=0)res.push(cur);if((sc>=0)!==(sn>=0)){const t=sc/(sc-sn);res.push([cur[0]+t*(nxt[0]-cur[0]),cur[1]+t*(nxt[1]-cur[1])]);}}return res;}
-function extend(a,b,len){let dx=b[0]-a[0],dy=b[1]-a[1];const d=Math.hypot(dx,dy)||1;dx/=d;dy/=d;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;return[[mx-dx*len,my-dy*len],[mx+dx*len,my+dy*len]];}
+/* a->b doğrusunun poligon kenarlarını kestiği noktaların t parametreleri (a=0, b=1) */
+function lineCrossings(pts,a,b){
+  const d=[b[0]-a[0],b[1]-a[1]];const ts=[];
+  for(let i=0;i<pts.length;i++){
+    const p=pts[i],q=pts[(i+1)%pts.length];
+    const e=[q[0]-p[0],q[1]-p[1]];
+    const den=d[0]*e[1]-d[1]*e[0];
+    if(Math.abs(den)<1e-12)continue;
+    const t=((p[0]-a[0])*e[1]-(p[1]-a[1])*e[0])/den;
+    const u=((p[0]-a[0])*d[1]-(p[1]-a[1])*d[0])/den;
+    if(u>=0&&u<1)ts.push(t);
+  }
+  return ts;
+}
+/* geçerli kesim: çizilen PARÇA şekli baştan başa geçmeli —
+   doğrunun tüm sınır kesişimleri [0,1] parametre aralığında kalmalı */
+function validSegmentCut(pts,a,b){
+  const ts=lineCrossings(pts,a,b);
+  if(ts.length<2)return false;
+  let mn=Infinity,mx=-Infinity;
+  for(const t of ts){if(t<mn)mn=t;if(t>mx)mx=t;}
+  return mn>=-1e-6&&mx<=1+1e-6;
+}
 
-/* ---------- palette / accent ---------- */
-const PALETTE=[{n:"Turuncu",v:"#fb6c00"},{n:"Kırmızı",v:"#e73f1e"},{n:"Altın",v:"#f9b637"},{n:"Krem",v:"#ffdd9c"}];
-function applyAccent(v){document.documentElement.style.setProperty('--accent',v);try{localStorage.setItem('kesme-accent',v);}catch(e){}draw();markSwatch(v);}
-function markSwatch(v){document.querySelectorAll('#swatches .swatch').forEach(s=>s.classList.toggle('sel',s.dataset.v.toLowerCase()===v.toLowerCase()));}
-
-/* ---------- state ---------- */
-const ring=document.getElementById("ring"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
-let dpr=1,size=340,shape=null,scaled=[],start=null,end=null,cut=null,state="idle",mode="daily";
+/* ---------- durum ---------- */
+const board=document.getElementById("board"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
+const tagline=document.getElementById("tagline"),actions=document.getElementById("actions");
+let dpr=1,size=300,shape=null,scaled=[],start=null,end=null,cut=null,state="idle",mode="daily",warnTimer=null;
 
 function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 function todayUTC(){return new Date().toISOString().slice(0,10);}
@@ -290,71 +360,91 @@ function pickDaily(){return POOL[hashStr(todayUTC())%POOL.length];}
 function pickRandom(){return POOL[Math.floor(Math.random()*POOL.length)];}
 
 function fitShape(){
-  const pad=size*0.20;let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
+  const pad=size*0.185;let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
   shape.p.forEach(pt=>{mnx=Math.min(mnx,pt[0]);mny=Math.min(mny,pt[1]);mxx=Math.max(mxx,pt[0]);mxy=Math.max(mxy,pt[1]);});
   const w=mxx-mnx,h=mxy-mny,av=size-2*pad,s=av/Math.max(w,h);
   const ox=(size-w*s)/2-mnx*s,oy=(size-h*s)/2-mny*s;
   scaled=shape.p.map(pt=>[pt[0]*s+ox,pt[1]*s+oy]);
 }
 function resize(){
-  const r=ring.getBoundingClientRect();size=r.width;dpr=window.devicePixelRatio||1;
+  const r=board.getBoundingClientRect();size=r.width;dpr=window.devicePixelRatio||1;
   cv.width=size*dpr;cv.height=size*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
   if(shape)fitShape();
   if(state==="done"&&window._last&&window._last.cut){const c=window._last.cut.map(v=>v*size);cut={A:[c[0],c[1]],N:[-(c[3]-c[1]),(c[2]-c[0])],p1:[c[0],c[1]],p2:[c[2],c[3]]};}
   draw();
 }
+
+/* ---------- çizim ---------- */
 function pathPoly(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();}
 function fillPoly(pts,fill,stroke,glow){
   if(pts.length<3)return;ctx.save();
-  if(glow){ctx.shadowColor=fill;ctx.shadowBlur=size*0.045;}
+  if(glow){ctx.shadowColor=fill;ctx.shadowBlur=size*0.05;}
   pathPoly(pts);ctx.fillStyle=fill;ctx.fill();ctx.restore();
   if(stroke){pathPoly(pts);ctx.lineWidth=2;ctx.strokeStyle=stroke;ctx.stroke();}
 }
+function dot(p,r,color){ctx.beginPath();ctx.arc(p[0],p[1],r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
+function drawSegment(a,b,final){
+  ctx.strokeStyle=cssVar('--c4');ctx.lineCap="round";
+  ctx.lineWidth=final?3:2;
+  ctx.setLineDash(final?[]:[6,7]);
+  ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  ctx.setLineDash([]);
+  dot(a,final?4.5:4,cssVar('--c4'));dot(b,final?4.5:4,cssVar('--c4'));
+}
 function draw(){
   ctx.clearRect(0,0,size,size);
-  if(state==="idle"||!shape)return; // disk shown via CSS; play button overlay
-  const acc=cssVar('--accent');
+  if(state==="idle"||!shape)return;
   if(state==="done"&&cut){
-    fillPoly(clipHalf(scaled,cut.A,cut.N),cssVar('--sideA'),cssVar('--sideA-ink'),true);
-    fillPoly(clipHalf(scaled,cut.A,[-cut.N[0],-cut.N[1]]),cssVar('--sideB'),cssVar('--sideB-ink'),false);
+    fillPoly(clipHalf(scaled,cut.A,cut.N),cssVar('--sideA'),cssVar('--sideA-edge'),true);
+    fillPoly(clipHalf(scaled,cut.A,[-cut.N[0],-cut.N[1]]),cssVar('--sideB'),cssVar('--sideB-edge'),true);
+    drawSegment(cut.p1,cut.p2,true);
   }else{
-    fillPoly(scaled,cssVar('--shape'),null,true);
-  }
-  const line=cut?{a:cut.p1,b:cut.p2}:(start&&end?{a:start,b:end}:null);
-  if(line){
-    const e=extend(line.a,line.b,size*1.5);
-    ctx.strokeStyle=cssVar('--cutline');ctx.lineWidth=cut?3:2;ctx.lineCap="round";
-    ctx.setLineDash(cut?[]:[6,7]);
-    ctx.beginPath();ctx.moveTo(e[0][0],e[0][1]);ctx.lineTo(e[1][0],e[1][1]);ctx.stroke();ctx.setLineDash([]);
+    fillPoly(scaled,cssVar('--c2'),null,true);
+    if(start&&end)drawSegment(start,end,false); /* çizgi: bastığın noktadan şu anki noktaya */
   }
 }
 
-/* ---------- input ---------- */
+/* ---------- girdi ---------- */
 function pos(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return[t.clientX-r.left,t.clientY-r.top];}
 function down(e){if(state!=="playing")return;e.preventDefault();start=pos(e);end=start;draw();}
 function move(e){if(state!=="playing"||!start)return;e.preventDefault();end=pos(e);draw();}
-function up(e){if(state!=="playing"||!start)return;e.preventDefault();if(end&&Math.hypot(end[0]-start[0],end[1]-start[1])>12)finalize();else{start=end=null;draw();}}
+function up(e){
+  if(state!=="playing"||!start)return;e.preventDefault();
+  const a=start,b=end;
+  start=null;
+  if(!b||Math.hypot(b[0]-a[0],b[1]-a[1])<=12){end=null;draw();return;}
+  if(validSegmentCut(scaled,a,b))finalize(a,b);
+  else invalidCut();
+}
 cv.addEventListener("mousedown",down);window.addEventListener("mousemove",move);window.addEventListener("mouseup",up);
-cv.addEventListener("touchstart",down,{passive:false});cv.addEventListener("touchmove",move,{passive:false});cv.addEventListener("touchend",up,{passive:false});
+cv.addEventListener("touchstart",down,{passive:false});cv.addEventListener("touchmove",move,{passive:false});
+cv.addEventListener("touchend",up,{passive:false});cv.addEventListener("touchcancel",up,{passive:false});
 
-/* ---------- flow ---------- */
-const tagline=document.getElementById("tagline"),actions=document.getElementById("actions");
-
+/* ---------- akış ---------- */
+function playingTagline(){tagline.innerHTML=shape.n+'<span class="sub">bir noktadan basılı tut, öbür tarafa sürükleyip bırak</span>';}
 function startRound(sh){
   shape=sh;fitShape();start=end=cut=null;state="playing";
-  ring.classList.remove("done");ring.classList.add("playing");
+  board.classList.remove("done");board.classList.add("playing");
   actions.classList.add("hide");
-  tagline.innerHTML='<span class="sub">'+shape.n+' — sürükleyerek kes</span>';
+  playingTagline();draw();
+}
+function invalidCut(){
+  end=null;
+  board.classList.add("shake");
+  setTimeout(()=>board.classList.remove("shake"),480);
+  tagline.innerHTML='<span class="warn">Çizgi şekli baştan başa kesmeli!</span><span class="sub">şeklin dışından başla, öbür taraftaki dışında bırak</span>';
+  clearTimeout(warnTimer);
+  warnTimer=setTimeout(()=>{if(state==="playing")playingTagline();},1800);
   draw();
 }
 function play(){
   if(mode==="daily"){
     const prev=loadDaily();
-    if(prev){showDone(prev,true);return;}
+    if(prev){restoreDaily(prev);return;}
     startRound(pickDaily());
   }else startRound(pickRandom());
 }
-function perfectPct(minPct){return Math.max(0,Math.round(minPct/50*100));}
+function perfectPct(minPct){return Math.max(0,Math.round(minPct*2));}
 function verdict(pf){
   if(pf>=99)return{t:"Mükemmel!",w:true};
   if(pf>=96)return{t:"Harika",w:true};
@@ -362,30 +452,35 @@ function verdict(pf){
   if(pf>=80)return{t:"Fena değil",w:false};
   return{t:"Olmadı",w:false};
 }
-function finalize(){
-  let dx=end[0]-start[0],dy=end[1]-start[1];const N=[-dy,dx];
-  const total=polyArea(scaled),aL=polyArea(clipHalf(scaled,start,N)),aR=Math.max(0,total-aL);
+function finalize(a,b){
+  const N=[-(b[1]-a[1]),b[0]-a[0]];
+  const total=polyArea(scaled),aL=polyArea(clipHalf(scaled,a,N)),aR=Math.max(0,total-aL);
   const minPct=total>0?Math.min(aL,aR)/total*100:0;
-  let pl=Math.max(0,Math.min(100,Math.round(aL/total*100)));const pr=100-pl;
-  cut={A:[start[0],start[1]],N:N,p1:[start[0],start[1]],p2:[end[0],end[1]]};
+  const pl=Math.max(0,Math.min(100,Math.round(aL/total*100))),pr=100-pl;
+  cut={A:[a[0],a[1]],N:N,p1:[a[0],a[1]],p2:[b[0],b[1]]};
   const rec={minPct,pl,pr,name:shape.n,pf:perfectPct(minPct),
-    cut:[start[0]/size,start[1]/size,end[0]/size,end[1]/size]};
+    cut:[a[0]/size,a[1]/size,b[0]/size,b[1]/size]};
   if(mode==="daily"){saveDaily(rec);updateStats(minPct);}
   showDone(rec,false);
 }
 function showDone(rec,restored){
-  if(restored){
-    shape=pickDaily();fitShape();
-    if(rec.cut){const c=rec.cut.map(v=>v*size);cut={A:[c[0],c[1]],N:[-(c[3]-c[1]),(c[2]-c[0])],p1:[c[0],c[1]],p2:[c[2],c[3]]};}
-  }
-  state="done";ring.classList.remove("playing");ring.classList.add("done");
+  state="done";board.classList.remove("playing");board.classList.add("done");
   const v=verdict(rec.pf);
-  tagline.innerHTML='<span class="big '+(v.w?'win':'lose')+'">'+v.t+' %'+rec.pf+'</span>'+
-    '<span class="sub">'+rec.pl+':'+rec.pr+' · '+rec.name+(mode==="daily"&&restored?' · bugün oynandı':'')+'</span>';
+  tagline.innerHTML='<span class="pct">%'+rec.pf+'</span><br>'+
+    '<span class="'+(v.w?'win':'lose')+'">'+v.t+'</span>'+
+    '<span class="sub">'+rec.pl+':'+rec.pr+' · '+rec.name+(restored?' · bugünkü hakkını kullandın':'')+'</span>';
+  const sp=document.getElementById("scorePill");
+  sp.style.visibility="visible";
   document.getElementById("scoreVal").textContent='%'+rec.pf;
   actions.classList.remove("hide");
-  document.getElementById("btnAgain").textContent = mode==="daily" ? "↻ Antrenman" : "↻ Yeniden oyna";
+  document.getElementById("btnAgain").textContent = mode==="daily" ? "↻ ANTRENMAN" : "↻ YENİDEN";
   window._last=rec;draw();
+}
+function restoreDaily(prev){
+  shape=pickDaily();fitShape();
+  window._last=prev;
+  if(prev.cut){const c=prev.cut.map(v=>v*size);cut={A:[c[0],c[1]],N:[-(c[3]-c[1]),(c[2]-c[0])],p1:[c[0],c[1]],p2:[c[2],c[3]]};}
+  showDone(prev,true);
 }
 
 document.getElementById("play").addEventListener("click",play);
@@ -395,18 +490,18 @@ document.getElementById("btnAgain").addEventListener("click",function(){
 });
 document.getElementById("mode").addEventListener("change",function(){
   mode=this.value;shape=null;cut=null;state="idle";
-  ring.classList.remove("playing","done");actions.classList.add("hide");
+  board.classList.remove("playing","done");actions.classList.add("hide");
   if(mode==="daily"){
     const prev=loadDaily();
-    if(prev){showDone(prev,true);}
-    else{tagline.innerHTML="Şekli tam ortadan ikiye böl!";draw();}
-  }else{tagline.innerHTML='<span class="sub">Başlat’a bas — sınırsız antrenman</span>';draw();}
+    if(prev)restoreDaily(prev);
+    else{tagline.textContent="Şekli tam ortadan ikiye böl!";draw();}
+  }else{tagline.innerHTML='Antrenman modu<span class="sub">▶ ile sınırsız şekil — günlük skorun etkilenmez</span>';draw();}
 });
 document.getElementById("btnArchive").addEventListener("click",function(){
   mode="practice";document.getElementById("mode").value="practice";startRound(pickRandom());
 });
 
-/* ---------- storage ---------- */
+/* ---------- kayıt ---------- */
 function dailyKey(){return "kesme2-day-"+todayUTC();}
 function saveDaily(r){try{localStorage.setItem(dailyKey(),JSON.stringify(r));}catch(e){}}
 function loadDaily(){try{return JSON.parse(localStorage.getItem(dailyKey()));}catch(e){return null;}}
@@ -427,45 +522,62 @@ function renderStats(){
   document.getElementById("stBest").textContent=s.best?("%"+s.best):"—";
 }
 
-/* ---------- share ---------- */
+/* ---------- paylaş ---------- */
 function emojiBar(pf){const f=Math.max(0,Math.min(5,Math.round(pf/20)));return "🟧".repeat(f)+"⬛".repeat(5-f);}
 document.getElementById("btnShare").addEventListener("click",function(){
   const r=window._last;if(!r)return;
   const txt="KESME "+todayUTC()+"\n"+r.name+" · "+r.pl+":"+r.pr+" · %"+r.pf+"\n"+emojiBar(r.pf);
   if(navigator.share)navigator.share({text:txt}).catch(()=>copy(txt));else copy(txt);
 });
-function copy(t){navigator.clipboard&&navigator.clipboard.writeText(t).then(()=>{const b=document.getElementById("btnShare");const o=b.textContent;b.textContent="Kopyalandı!";setTimeout(()=>b.textContent=o,1300);});}
+function copy(t){
+  if(!navigator.clipboard)return;
+  navigator.clipboard.writeText(t).then(()=>{
+    const b=document.getElementById("btnShare");const o=b.textContent;
+    b.textContent="KOPYALANDI!";setTimeout(()=>b.textContent=o,1300);
+  }).catch(()=>{});
+}
 
-/* ---------- modals ---------- */
-function open(id){document.getElementById(id).classList.add("show");}
-document.getElementById("btnHelp").onclick=()=>open("helpModal");
-document.getElementById("btnStats").onclick=()=>{renderStats();open("statsModal");};
-document.getElementById("btnPalette").onclick=()=>open("palModal");
+/* ---------- vurgu rengi ---------- */
+const PALETTE=[{n:"Kırmızı",v:"#e73f1e"},{n:"Turuncu",v:"#fb6c00"},{n:"Altın",v:"#f9b637"},{n:"Krem",v:"#ffdd9c"}];
+function applyAccent(v){
+  document.documentElement.style.setProperty('--accent',v);
+  try{localStorage.setItem('kesme-accent',v);}catch(e){}
+  markSwatch(v);draw();
+}
+function markSwatch(v){document.querySelectorAll('#swatches .swatch').forEach(s=>s.classList.toggle('sel',s.dataset.v.toLowerCase()===v.toLowerCase()));}
+const sw=document.getElementById("swatches");
+PALETTE.forEach(p=>{
+  const d=document.createElement("button");
+  d.className="swatch";d.style.background=p.v;d.dataset.v=p.v;d.title=p.n;
+  d.onclick=()=>applyAccent(p.v);sw.appendChild(d);
+});
+
+/* ---------- pencereler ---------- */
+function openModal(id){document.getElementById(id).classList.add("show");}
+document.getElementById("btnHelp").onclick=()=>openModal("helpModal");
+document.getElementById("btnStats").onclick=()=>{renderStats();openModal("statsModal");};
+document.getElementById("btnPalette").onclick=()=>openModal("palModal");
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest(".modal").classList.remove("show"));
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("show");}));
 
-/* build swatches */
-const sw=document.getElementById("swatches");
-PALETTE.forEach(p=>{const d=document.createElement("div");d.className="swatch";d.style.background=p.v;d.dataset.v=p.v;d.title=p.n;d.onclick=()=>applyAccent(p.v);sw.appendChild(d);});
-
-/* ---------- countdown ---------- */
-function pad(n){return String(n).padStart(2,"0");}
+/* ---------- geri sayım ---------- */
+function pad2(n){return String(n).padStart(2,"0");}
 function cdTick(){
   const now=new Date();
   const next=Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1,0,0,0);
   let s=Math.max(0,Math.floor((next-now.getTime())/1000));
   const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60);s%=60;
-  document.getElementById("cdTime").textContent=pad(h)+":"+pad(m)+":"+pad(s);
+  document.getElementById("cdTime").textContent=pad2(h)+":"+pad2(m)+":"+pad2(s);
 }
 
-/* ---------- init ---------- */
+/* ---------- başlangıç ---------- */
 (function init(){
-  const savedAcc=(function(){try{return localStorage.getItem('kesme-accent');}catch(e){return null;}})();
+  let savedAcc=null;try{savedAcc=localStorage.getItem('kesme-accent');}catch(e){}
   if(savedAcc)document.documentElement.style.setProperty('--accent',savedAcc);
   markSwatch(savedAcc||cssVar('--accent'));
   resize();
   const prev=loadDaily();
-  if(prev){window._last=prev;showDone(prev,true);}
+  if(prev)restoreDaily(prev);
   cdTick();setInterval(cdTick,1000);
 })();
 window.addEventListener("resize",resize);
