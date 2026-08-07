@@ -3,124 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>KESME — Günlük Şekil Kesme Bulmacası</title>
-<meta name="description" content="Cutle'ın Türkiye uyarlaması: Her gün gelen şekli tek çizgiyle olabildiğince 50:50 ikiye böl.">
+<title>Kesme — Günlük Şekil Bulmacası</title>
+<meta name="description" content="Cutle'dan ilhamla: Her gün gelen şekli tek çizgiyle olabildiğince 50:50 ikiye böl.">
 <style>
   :root{
-    --bg:#0f1115; --bg2:#161a22; --card:#1b2029; --line:#2a313d;
-    --text:#eef2f7; --muted:#9aa6b6;
-    --red:#e30a17; --red2:#ff3d47; --green:#22c55e; --gold:#f5c451;
-    --a:#4aa3ff; --b:#ff8f5c;
+    --bg:#faf9f6; --panel:#ffffff; --board:#f4f2ec; --line:#e7e3da;
+    --ink:#1c1d21; --muted:#8b8a86;
+    --accent:#e30a17; --accent-soft:#fbe7e8;
+    --sideA:#e05a4f; --sideA-ink:#b23b32;
+    --sideB:#5a6472; --sideB-ink:#3d4552;
+    --shape:#2b3038; --cutline:#16181d;
+    --shadow:rgba(30,25,20,.10);
+    --win:#1a8a4a; --lose:#c0392b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#101216; --panel:#171a20; --board:#12151a; --line:#252a33;
+      --ink:#eceef2; --muted:#8a909b;
+      --accent:#ff4d57; --accent-soft:#2a1416;
+      --sideA:#f0705f; --sideA-ink:#ff9285;
+      --sideB:#8b93a3; --sideB-ink:#aab2c1;
+      --shape:#dfe3ea; --cutline:#f4f6fa;
+      --shadow:rgba(0,0,0,.45);
+      --win:#3ddc84; --lose:#ff6b5e;
+    }
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
   body{
-    background:radial-gradient(1200px 600px at 50% -10%, #1c2230 0%, var(--bg) 60%);
-    color:var(--text);
-    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    -webkit-font-smoothing:antialiased;
   }
   header{
-    width:100%; max-width:520px; padding:14px 16px 6px; display:flex; align-items:center; justify-content:space-between;
+    width:100%; max-width:460px; padding:22px 20px 6px;
+    display:flex; align-items:flex-start; justify-content:space-between;
   }
-  .brand{display:flex; align-items:center; gap:10px;}
-  .brand .star{color:var(--gold); font-size:20px; filter:drop-shadow(0 0 6px rgba(245,196,81,.4));}
-  h1{font-size:22px; letter-spacing:3px; margin:0; font-weight:800;}
-  h1 .tr{color:var(--red2);}
-  .sub{font-size:11px; color:var(--muted); letter-spacing:.5px; margin-top:2px;}
+  .brand{display:flex; flex-direction:column; gap:2px;}
+  .wordmark{display:flex; align-items:baseline; gap:8px;}
+  h1{
+    font-family:Georgia,"Times New Roman",serif;
+    font-size:30px; margin:0; font-weight:700; letter-spacing:.3px;
+  }
+  .pill{
+    font-size:11px; font-weight:700; letter-spacing:1px; color:#fff;
+    background:var(--accent); padding:2px 8px; border-radius:6px; transform:translateY(-3px);
+  }
+  .tagline{font-size:12.5px; color:var(--muted); letter-spacing:.2px;}
   .icons{display:flex; gap:6px;}
   .icons button{
-    background:var(--card); border:1px solid var(--line); color:var(--text);
-    width:38px; height:38px; border-radius:10px; font-size:17px; cursor:pointer;
+    background:transparent; border:1px solid var(--line); color:var(--ink);
+    width:38px; height:38px; border-radius:50%; font-size:15px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:background .15s;
   }
-  .icons button:active{transform:scale(.94);}
-  main{width:100%; max-width:520px; padding:6px 16px 30px; display:flex; flex-direction:column; gap:12px;}
-  .shapecard{
-    background:linear-gradient(180deg,var(--card),var(--bg2));
-    border:1px solid var(--line); border-radius:18px; padding:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,.35);
+  .icons button:hover{background:var(--board);}
+  .icons button:active{transform:scale(.93);}
+  .icons button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  main{width:100%; max-width:460px; padding:10px 20px 40px; display:flex; flex-direction:column; gap:16px;}
+  .meta{display:flex; align-items:center; justify-content:space-between; padding:0 2px;}
+  .meta .name{font-size:15px; font-weight:600;}
+  .meta .name span{color:var(--muted); font-weight:400;}
+  .tag{font-size:11px; font-weight:700; letter-spacing:.5px; padding:3px 9px; border-radius:999px;}
+  .tag.geo{color:var(--muted); background:var(--board);}
+  .tag.tr{color:var(--accent); background:var(--accent-soft);}
+  .canvaswrap{
+    position:relative; width:100%; aspect-ratio:1/1; touch-action:none;
+    border-radius:20px; overflow:hidden; border:1px solid var(--line);
+    box-shadow:0 8px 26px var(--shadow); background:var(--board);
   }
-  .shapemeta{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
-  .chip{font-size:12px; color:var(--muted); background:#0f131b; border:1px solid var(--line); padding:5px 10px; border-radius:999px;}
-  .chip b{color:var(--text);}
-  .cat{font-size:11px; padding:4px 9px; border-radius:999px; font-weight:700; letter-spacing:.4px;}
-  .cat.geo{background:rgba(74,163,255,.15); color:#8fc2ff; border:1px solid rgba(74,163,255,.3);}
-  .cat.tr{background:rgba(227,10,23,.16); color:#ff8a90; border:1px solid rgba(227,10,23,.35);}
-  .canvaswrap{position:relative; width:100%; aspect-ratio:1/1; touch-action:none;}
-  canvas{width:100%; height:100%; display:block; border-radius:14px; background:
-    repeating-linear-gradient(45deg,#12161e 0 12px,#141922 12px 24px); cursor:crosshair;}
-  .hint{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;}
-  .hint span{background:rgba(0,0,0,.55); padding:8px 14px; border-radius:999px; font-size:13px; color:#cdd6e2;}
+  canvas{width:100%; height:100%; display:block; cursor:crosshair;}
+  .hint{position:absolute; left:0; right:0; bottom:16px; display:flex; justify-content:center; pointer-events:none;}
+  .hint span{background:var(--panel); color:var(--muted); padding:7px 14px; border-radius:999px; font-size:12.5px; box-shadow:0 2px 10px var(--shadow); border:1px solid var(--line);}
+  .result{text-align:center; display:none;}
+  .result.show{display:block; animation:fade .4s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+  .ratio{font-family:Georgia,serif; font-size:44px; font-weight:700; line-height:1;}
+  .ratio .l{color:var(--sideA-ink);} .ratio .r{color:var(--sideB-ink);} .ratio .sep{color:var(--muted); font-weight:400; margin:0 4px;}
+  .verdict{font-size:15px; font-weight:700; margin-top:8px; letter-spacing:.3px;}
+  .verdict.win{color:var(--win);} .verdict.lose{color:var(--lose);}
+  .stars{font-size:18px; letter-spacing:5px; margin-top:6px; color:var(--muted);}
+  .msg{color:var(--muted); font-size:13px; margin-top:6px;}
+  .badge{display:none; align-self:center; font-size:11px; color:var(--accent); background:var(--accent-soft);
+    padding:4px 11px; border-radius:999px; letter-spacing:.3px;}
+  .badge.show{display:inline-block;}
   .actions{display:flex; gap:10px;}
   button.primary{
-    flex:1; background:linear-gradient(180deg,var(--red2),var(--red)); color:#fff; border:none;
-    padding:14px; border-radius:12px; font-size:15px; font-weight:800; letter-spacing:.5px; cursor:pointer;
-    box-shadow:0 6px 18px rgba(227,10,23,.35);
+    flex:1; background:var(--accent); color:#fff; border:none;
+    padding:15px; border-radius:14px; font-size:15px; font-weight:700; letter-spacing:.4px; cursor:pointer;
+    transition:filter .15s, opacity .15s;
   }
-  button.primary:disabled{filter:grayscale(.6) brightness(.7); cursor:not-allowed; box-shadow:none;}
+  button.primary:hover{filter:brightness(1.05);}
+  button.primary:disabled{background:var(--board); color:var(--muted); cursor:default;}
   button.ghost{
-    background:var(--card); border:1px solid var(--line); color:var(--text);
-    padding:14px 16px; border-radius:12px; font-weight:700; cursor:pointer;
+    background:transparent; border:1px solid var(--line); color:var(--ink);
+    padding:15px 18px; border-radius:14px; font-weight:600; cursor:pointer;
   }
+  button.ghost:hover{background:var(--board);}
   button:active{transform:translateY(1px);}
-  .result{
-    text-align:center; padding:6px 4px 0; display:none;
-  }
-  .result.show{display:block; animation:pop .35s ease;}
-  @keyframes pop{from{transform:scale(.9); opacity:0;} to{transform:scale(1); opacity:1;}}
-  .ratio{font-size:40px; font-weight:900; letter-spacing:1px;}
-  .ratio .l{color:var(--a);} .ratio .r{color:var(--b);} .ratio .sep{color:var(--muted); font-weight:400;}
-  .verdict{font-size:16px; font-weight:800; margin-top:2px;}
-  .verdict.win{color:var(--green);} .verdict.lose{color:var(--red2);}
-  .stars{font-size:22px; letter-spacing:4px; margin:4px 0;}
-  .msg{color:var(--muted); font-size:13px;}
-  .practice-badge{display:none; align-self:center; font-size:11px; color:#8fc2ff; background:rgba(74,163,255,.12);
-    border:1px solid rgba(74,163,255,.3); padding:4px 10px; border-radius:999px;}
-  .practice-badge.show{display:inline-block;}
   /* modal */
-  .modal{position:fixed; inset:0; background:rgba(5,7,10,.7); display:none; align-items:center; justify-content:center; padding:18px; z-index:20;}
+  .modal{position:fixed; inset:0; background:rgba(15,15,18,.5); display:none; align-items:flex-end; justify-content:center; z-index:20;}
   .modal.show{display:flex;}
-  .sheet{background:var(--card); border:1px solid var(--line); border-radius:18px; max-width:440px; width:100%; padding:22px; max-height:88vh; overflow:auto;}
-  .sheet h2{margin:0 0 12px; font-size:20px;}
-  .sheet p, .sheet li{color:#cbd4e0; font-size:14px; line-height:1.55;}
-  .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; margin:-6px -4px 0 0;}
-  .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:12px 0;}
-  .stat{background:#0f131b; border:1px solid var(--line); border-radius:12px; padding:12px 6px; text-align:center;}
-  .stat .n{font-size:24px; font-weight:800;} .stat .t{font-size:10px; color:var(--muted); letter-spacing:.3px;}
-  .kbd{display:inline-block; background:#0f131b; border:1px solid var(--line); border-radius:6px; padding:1px 7px; font-size:12px;}
-  footer{color:#5c6675; font-size:11px; padding:0 16px 24px; text-align:center; max-width:520px;}
-  footer a{color:#7f8b9c;}
+  @media(min-width:520px){.modal{align-items:center;}}
+  .sheet{background:var(--panel); border:1px solid var(--line); border-radius:22px 22px 0 0; max-width:460px; width:100%; padding:24px; max-height:90vh; overflow:auto; animation:up .28s ease;}
+  @media(min-width:520px){.sheet{border-radius:22px;}}
+  @keyframes up{from{transform:translateY(20px); opacity:.6;} to{transform:none; opacity:1;}}
+  .sheet h2{font-family:Georgia,serif; margin:0 0 14px; font-size:22px;}
+  .sheet p,.sheet li{color:var(--ink); font-size:14px; line-height:1.6;}
+  .sheet .muted{color:var(--muted);}
+  .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; margin:-8px -6px 0 0; line-height:1;}
+  .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0 6px;}
+  .stat{text-align:center;}
+  .stat .n{font-family:Georgia,serif; font-size:26px; font-weight:700;}
+  .stat .t{font-size:10px; color:var(--muted); letter-spacing:.4px; margin-top:2px;}
+  footer{color:var(--muted); font-size:11.5px; padding:0 20px 28px; text-align:center; max-width:460px; line-height:1.5;}
+  footer a{color:var(--muted);}
 </style>
 </head>
 <body>
 <header>
   <div class="brand">
-    <span class="star">✦</span>
-    <div>
-      <h1>KESME<span class="tr">·TR</span></h1>
-      <div class="sub">GÜNLÜK ŞEKİL KESME BULMACASI</div>
-    </div>
+    <div class="wordmark"><h1>Kesme</h1><span class="pill">TR</span></div>
+    <div class="tagline">Günlük şekil bölme bulmacası</div>
   </div>
   <div class="icons">
     <button id="btnHelp" title="Nasıl oynanır">?</button>
-    <button id="btnStats" title="İstatistik">📊</button>
-    <button id="btnPractice" title="Antrenman modu">🎯</button>
+    <button id="btnStats" title="İstatistik">▚</button>
+    <button id="btnPractice" title="Antrenman modu">↻</button>
   </div>
 </header>
 
 <main>
-  <div class="shapecard">
-    <div class="shapemeta">
-      <span class="chip">Bugünkü şekil: <b id="shapeName">—</b></span>
-      <span class="cat geo" id="shapeCat">GEOMETRİK</span>
-    </div>
-    <div class="canvaswrap">
-      <canvas id="cv"></canvas>
-      <div class="hint" id="hint"><span>Parmağını / fareni şeklin üzerinden sürükleyerek kes</span></div>
-    </div>
+  <div class="meta">
+    <div class="name">Bugün: <span id="shapeName">—</span></div>
+    <span class="tag geo" id="shapeCat">geometrik</span>
   </div>
 
-  <span class="practice-badge" id="practiceBadge">ANTRENMAN MODU — bugünkü hakkını etkilemez</span>
+  <div class="canvaswrap">
+    <canvas id="cv"></canvas>
+    <div class="hint" id="hint"><span>Şeklin üzerinden sürükleyerek kes</span></div>
+  </div>
+
+  <span class="badge" id="practiceBadge">antrenman modu — günlük hakkını etkilemez</span>
 
   <div class="result" id="result">
     <div class="ratio"><span class="l" id="rl">50</span><span class="sep">:</span><span class="r" id="rr">50</span></div>
@@ -130,63 +154,57 @@
   </div>
 
   <div class="actions">
-    <button class="primary" id="btnMain">KES</button>
+    <button class="primary" id="btnMain">Şekli sürükleyerek kes</button>
     <button class="ghost" id="btnShare" style="display:none;">Paylaş</button>
   </div>
 </main>
 
 <footer>
-  <a href="https://pfiffel.com/cutle/" target="_blank" rel="noopener">Cutle</a> oyunundan ilham alınarak Türkiye için uyarlanmıştır · Şekiller çoğunlukla geometrik, aralarında Türkiye temalı formlar bulunur.
+  <a href="https://cutle.org/" target="_blank" rel="noopener">Cutle</a>'dan ilhamla Türkiye için uyarlandı · Şekiller çoğunlukla geometrik, aralarında Türkiye temalı formlar var.
 </footer>
 
-<!-- HELP MODAL -->
+<!-- HELP -->
 <div class="modal" id="helpModal">
   <div class="sheet">
     <button class="close" data-close>×</button>
     <h2>Nasıl oynanır?</h2>
-    <p>Her gün ekrana bir <b>şekil</b> gelir. Amacın onu tek bir düz çizgiyle olabildiğince <b>50:50</b> (yarı yarıya eşit) ikiye bölmek.</p>
+    <p>Her gün bir <b>şekil</b> gelir. Amacın onu tek düz çizgiyle olabildiğince <b>50:50</b> ikiye bölmek.</p>
     <ul>
-      <li>Şeklin üzerinden bir yerden başka bir yere <b>sürükleyerek</b> kesme çizgini çiz.</li>
-      <li>İstediğin açıdan kesebilirsin — çizgi sonsuza uzar.</li>
+      <li>Şeklin üzerinde bir noktadan başka bir noktaya <b>sürükle</b> — çizgi sonsuza uzar, istediğin açıdan kes.</li>
       <li>Parmağını kaldırınca kesim <b>kilitlenir</b>.</li>
-      <li>Skorun iki parçanın ne kadar eşit olduğuna göre belirlenir.</li>
-      <li><b>48:52</b> ve daha iyisi = kazandın ✅</li>
-      <li>Günde <b>tek hakkın</b> var. Yeni şekil her gün 00:00 UTC'de gelir.</li>
+      <li><b>48:52</b> ve daha iyisi = kazandın.</li>
+      <li>Günde <b>tek hak</b>. Yeni şekil her gün 00:00 UTC'de gelir.</li>
     </ul>
-    <p>Sadece pratik yapmak istersen sağ üstteki 🎯 <b>Antrenman modu</b>'nu aç — orada sınırsız denersin, günlük skorun etkilenmez.</p>
-    <p class="msg">İpucu: Çoğu şekilde en dengeli kesim, şeklin “ağırlık merkezinden” geçen çizgidir.</p>
+    <p class="muted">Sadece pratik için sağ üstteki ↻ <b>Antrenman modu</b>'nu aç — sınırsız denersin, günlük skorun etkilenmez.</p>
   </div>
 </div>
 
-<!-- STATS MODAL -->
+<!-- STATS -->
 <div class="modal" id="statsModal">
   <div class="sheet">
     <button class="close" data-close>×</button>
-    <h2>İstatistiklerin</h2>
+    <h2>İstatistikler</h2>
     <div class="statgrid">
       <div class="stat"><div class="n" id="stPlayed">0</div><div class="t">OYNANAN</div></div>
       <div class="stat"><div class="n" id="stWin">0%</div><div class="t">KAZANMA</div></div>
       <div class="stat"><div class="n" id="stStreak">0</div><div class="t">SERİ</div></div>
       <div class="stat"><div class="n" id="stBest">—</div><div class="t">EN İYİ</div></div>
     </div>
-    <p class="msg">En iyi = bugüne kadarki en dengeli kesimin (azınlık tarafın yüzdesi). 50'ye ne kadar yakınsa o kadar iyi.</p>
+    <p class="muted">En iyi = bugüne kadarki en dengeli kesimin (azınlık tarafın yüzdesi); 50'ye ne kadar yakınsa o kadar iyi.</p>
   </div>
 </div>
 
 <script>
 "use strict";
 (function(){
-/* ---------- utils ---------- */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 
-/* ---------- shape generators (normalized 0..1, y down) ---------- */
 function regular(n,rot,r){r=r||0.44;rot=rot||0;const p=[];for(let i=0;i<n;i++){const a=rot+i/n*Math.PI*2;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
 function starShape(n,ro,ri,rot){rot=rot||-Math.PI/2;const p=[];for(let i=0;i<n*2;i++){const r=i%2?ri:ro;const a=rot+i/(n*2)*Math.PI*2;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
 function blob(seed,n){n=n||14;const rng=mulberry32(seed);const p=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const r=0.24+rng()*0.22;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
 
-// Turkey-themed hand-crafted polygons
-const TR = {
+const TR={
   turkiye:[[0.04,0.55],[0.14,0.46],[0.22,0.49],[0.28,0.43],[0.34,0.47],[0.42,0.41],[0.54,0.43],[0.64,0.39],[0.76,0.43],[0.88,0.41],[0.96,0.49],[0.92,0.60],[0.83,0.63],[0.80,0.73],[0.71,0.68],[0.61,0.72],[0.50,0.66],[0.40,0.70],[0.30,0.66],[0.20,0.71],[0.10,0.64]],
   hilal:[[0.56,0.06],[0.37,0.10],[0.21,0.24],[0.13,0.45],[0.16,0.67],[0.29,0.85],[0.51,0.94],[0.40,0.80],[0.30,0.62],[0.28,0.46],[0.33,0.30],[0.45,0.16]],
   cay:[[0.30,0.06],[0.70,0.06],[0.66,0.19],[0.60,0.35],[0.56,0.50],[0.62,0.70],[0.71,0.90],[0.72,0.95],[0.28,0.95],[0.29,0.90],[0.38,0.70],[0.44,0.50],[0.40,0.35],[0.34,0.19]],
@@ -196,7 +214,6 @@ const TR = {
 };
 
 const POOL=[
-  // ---- geometric (majority) ----
   {n:"Üçgen",c:"geo",p:regular(3,-Math.PI/2,0.46)},
   {n:"Kare",c:"geo",p:regular(4,-Math.PI/4,0.44)},
   {n:"Beşgen",c:"geo",p:regular(5,-Math.PI/2,0.45)},
@@ -221,7 +238,6 @@ const POOL=[
   {n:"Taş",c:"geo",p:blob(404,13)},
   {n:"Bulut",c:"geo",p:blob(505,17)},
   {n:"Ada",c:"geo",p:blob(606,14)},
-  // ---- Türkiye themed (minority) ----
   {n:"Türkiye haritası",c:"tr",p:TR.turkiye},
   {n:"Hilal (Ay)",c:"tr",p:TR.hilal},
   {n:"Çay bardağı",c:"tr",p:TR.cay},
@@ -230,154 +246,112 @@ const POOL=[
   {n:"Yıldız (Bayrak)",c:"tr",p:TR.yildiz}
 ];
 
-/* ---------- geometry ---------- */
 function polyArea(pts){let a=0;for(let i=0;i<pts.length;i++){const p=pts[i],q=pts[(i+1)%pts.length];a+=p[0]*q[1]-q[0]*p[1];}return Math.abs(a)/2;}
-// keep the part where dot(N, P-A) >= 0
 function clipHalf(pts,A,N){const res=[];const side=p=>N[0]*(p[0]-A[0])+N[1]*(p[1]-A[1]);const nn=pts.length;for(let i=0;i<nn;i++){const cur=pts[i],nxt=pts[(i+1)%nn];const sc=side(cur),sn=side(nxt);if(sc>=0)res.push(cur);if((sc>=0)!==(sn>=0)){const t=sc/(sc-sn);res.push([cur[0]+t*(nxt[0]-cur[0]),cur[1]+t*(nxt[1]-cur[1])]);}}return res;}
 
-/* ---------- state ---------- */
+/* theme colors from CSS vars (theme-aware) */
+function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
+let COL={};
+function readColors(){COL={board:cssVar('--board'),shape:cssVar('--shape'),a:cssVar('--sideA'),aInk:cssVar('--sideA-ink'),b:cssVar('--sideB'),bInk:cssVar('--sideB-ink'),line:cssVar('--cutline'),shadow:cssVar('--shadow')};}
+
 const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
-let dpr=1,size=360;
-let shape=null, scaled=[]; // scaled polygon in logical px
-let start=null,end=null,locked=false,cut=null;
-let practice=false;
+let dpr=1,size=360,shape=null,scaled=[],start=null,end=null,locked=false,cut=null,practice=false;
 
 function todayUTC(){return new Date().toISOString().slice(0,10);}
-
-function pickShape(seedStr){const idx=hashStr(seedStr)%POOL.length;return POOL[idx];}
+function pickShape(seedStr){return POOL[hashStr(seedStr)%POOL.length];}
 
 function fitShape(){
-  const pad=size*0.13;
-  let minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
+  const pad=size*0.16;let minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9;
   shape.p.forEach(pt=>{minx=Math.min(minx,pt[0]);miny=Math.min(miny,pt[1]);maxx=Math.max(maxx,pt[0]);maxy=Math.max(maxy,pt[1]);});
-  const w=maxx-minx,h=maxy-miny;const avail=size-2*pad;const s=avail/Math.max(w,h);
-  const ox=(size-w*s)/2-minx*s, oy=(size-h*s)/2-miny*s;
+  const w=maxx-minx,h=maxy-miny,avail=size-2*pad,s=avail/Math.max(w,h);
+  const ox=(size-w*s)/2-minx*s,oy=(size-h*s)/2-miny*s;
   scaled=shape.p.map(pt=>[pt[0]*s+ox,pt[1]*s+oy]);
 }
-
 function resize(){
   const wrap=cv.parentElement.getBoundingClientRect();
-  size=Math.max(240,Math.min(wrap.width,460));
-  dpr=window.devicePixelRatio||1;
-  cv.width=size*dpr;cv.height=size*dpr;
-  cv.style.height=size+"px";
-  ctx.setTransform(dpr,0,0,dpr,0,0);
+  size=Math.max(240,Math.min(wrap.width,460));dpr=window.devicePixelRatio||1;
+  cv.width=size*dpr;cv.height=size*dpr;cv.style.height=size+"px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);readColors();
   if(shape){fitShape();draw();}
 }
-
+function pathPoly(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();}
+function fillPoly(pts,fill,stroke,shadow){
+  if(pts.length<3)return;
+  ctx.save();
+  if(shadow){ctx.shadowColor=COL.shadow;ctx.shadowBlur=size*0.05;ctx.shadowOffsetY=size*0.015;}
+  pathPoly(pts);ctx.fillStyle=fill;ctx.fill();
+  ctx.restore();
+  if(stroke){pathPoly(pts);ctx.lineWidth=1.5;ctx.strokeStyle=stroke;ctx.stroke();}
+}
 function draw(){
   ctx.clearRect(0,0,size,size);
-  // background grid
-  ctx.fillStyle="#12161e";ctx.fillRect(0,0,size,size);
-  ctx.strokeStyle="rgba(255,255,255,.03)";ctx.lineWidth=1;
-  for(let i=0;i<=size;i+=Math.round(size/12)){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,size);ctx.moveTo(0,i);ctx.lineTo(size,i);ctx.stroke();}
-
+  ctx.fillStyle=COL.board;ctx.fillRect(0,0,size,size);
   if(cut){
-    // two halves colored
     const A=cut.A,N=cut.N;
-    const left=clipHalf(scaled,A,N);
-    const right=clipHalf(scaled,A,[-N[0],-N[1]]);
-    fillPoly(left,"rgba(74,163,255,.55)","#4aa3ff");
-    fillPoly(right,"rgba(255,143,92,.55)","#ff8f5c");
+    fillPoly(clipHalf(scaled,A,N),COL.a,COL.aInk,true);
+    fillPoly(clipHalf(scaled,A,[-N[0],-N[1]]),COL.b,COL.bInk,false);
   }else{
-    fillPoly(scaled,"rgba(227,10,23,.28)","#ff3d47");
+    fillPoly(scaled,COL.shape,null,true);
   }
-
-  // preview / final cut line
-  const line = cut ? {a:cut.p1,b:cut.p2} : (start&&end?{a:start,b:end}:null);
+  const line=cut?{a:cut.p1,b:cut.p2}:(start&&end?{a:start,b:end}:null);
   if(line){
-    const ext=extend(line.a,line.b,size*1.6);
-    ctx.strokeStyle=cut?"#f5c451":"#ffffff";
-    ctx.lineWidth=cut?3:2;
-    ctx.setLineDash(cut?[]:[7,6]);
-    ctx.beginPath();ctx.moveTo(ext[0][0],ext[0][1]);ctx.lineTo(ext[1][0],ext[1][1]);ctx.stroke();
+    const e=extend(line.a,line.b,size*1.6);
+    ctx.strokeStyle=COL.line;ctx.lineWidth=cut?2.5:2;ctx.lineCap="round";
+    ctx.setLineDash(cut?[]:[6,7]);
+    ctx.beginPath();ctx.moveTo(e[0][0],e[0][1]);ctx.lineTo(e[1][0],e[1][1]);ctx.stroke();
     ctx.setLineDash([]);
   }
 }
-function fillPoly(pts,fill,stroke){
-  if(pts.length<3)return;
-  ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);
-  for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);
-  ctx.closePath();ctx.fillStyle=fill;ctx.fill();
-  ctx.lineWidth=2.5;ctx.strokeStyle=stroke;ctx.stroke();
-}
-function extend(a,b,len){
-  let dx=b[0]-a[0],dy=b[1]-a[1];const d=Math.hypot(dx,dy)||1;dx/=d;dy/=d;
-  const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
-  return [[mx-dx*len,my-dy*len],[mx+dx*len,my+dy*len]];
-}
+function extend(a,b,len){let dx=b[0]-a[0],dy=b[1]-a[1];const d=Math.hypot(dx,dy)||1;dx/=d;dy/=d;const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;return[[mx-dx*len,my-dy*len],[mx+dx*len,my+dy*len]];}
 
-/* ---------- input ---------- */
-function pos(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return [t.clientX-r.left,t.clientY-r.top];}
+function pos(e){const r=cv.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return[t.clientX-r.left,t.clientY-r.top];}
 function down(e){if(locked)return;e.preventDefault();start=pos(e);end=start;document.getElementById("hint").style.display="none";draw();}
 function move(e){if(locked||!start)return;e.preventDefault();end=pos(e);draw();}
-function up(e){if(locked||!start)return;e.preventDefault();
-  if(end&&Math.hypot(end[0]-start[0],end[1]-start[1])>12){finalize(start,end);}else{start=end=null;draw();}
-}
+function up(e){if(locked||!start)return;e.preventDefault();if(end&&Math.hypot(end[0]-start[0],end[1]-start[1])>12)finalize(start,end);else{start=end=null;draw();}}
 cv.addEventListener("mousedown",down);window.addEventListener("mousemove",move);window.addEventListener("mouseup",up);
 cv.addEventListener("touchstart",down,{passive:false});cv.addEventListener("touchmove",move,{passive:false});cv.addEventListener("touchend",up,{passive:false});
 
-/* ---------- game flow ---------- */
 function finalize(p1,p2){
   let dx=p2[0]-p1[0],dy=p2[1]-p1[1];const N=[-dy,dx];
-  const total=polyArea(scaled);
-  const aLeft=polyArea(clipHalf(scaled,p1,N));
-  const aRight=Math.max(0,total-aLeft);
+  const total=polyArea(scaled),aLeft=polyArea(clipHalf(scaled,p1,N)),aRight=Math.max(0,total-aLeft);
   const minPct=total>0?Math.min(aLeft,aRight)/total*100:0;
-  let pl=Math.round(aLeft/total*100);pl=Math.max(0,Math.min(100,pl));const pr=100-pl;
-  cut={A:p1,N:N,p1:p1,p2:p2,minPct:minPct,pl:pl,pr:pr};
-  locked=true;
-  draw();
+  let pl=Math.max(0,Math.min(100,Math.round(aLeft/total*100)));const pr=100-pl;
+  cut={A:p1,N:N,p1:p1,p2:p2,minPct:minPct,pl:pl,pr:pr};locked=true;draw();
   showResult(minPct,pl,pr);
   if(!practice){saveDaily(minPct,pl,pr);updateStats(minPct);}
 }
-
-function rating(minPct){
-  if(minPct>=49.5)return{s:3,win:true,t:"MÜKEMMEL KESİM!",m:"Neredeyse kusursuz. Elin çok düzgün."};
-  if(minPct>=48)  return{s:2,win:true,t:"KAZANDIN",m:"Güzel denge! 48:52 sınırını geçtin."};
-  if(minPct>=45)  return{s:1,win:false,t:"ÇOK YAKIN",m:"Az kaldı — bir dahakine tam ortadan dene."};
-  if(minPct>=35)  return{s:0,win:false,t:"KAYBETTİN",m:"Dengesiz oldu. Ağırlık merkezini hedefle."};
-  return{s:0,win:false,t:"KAYBETTİN",m:"Çizgi şekli ıskalamış olabilir."};
+function rating(m){
+  if(m>=49.5)return{s:3,win:true,t:"Mükemmel kesim!",m:"Neredeyse kusursuz — elin çok düzgün."};
+  if(m>=48)return{s:2,win:true,t:"Kazandın",m:"Güzel denge, 48:52 sınırını geçtin."};
+  if(m>=45)return{s:1,win:false,t:"Çok yakın",m:"Az kaldı — bir dahakine tam ortadan dene."};
+  return{s:0,win:false,t:"Kaybettin",m:"Dengesiz oldu; ağırlık merkezini hedefle."};
 }
-
+function setStars(el,r){el.textContent="●".repeat(r.s)+"○".repeat(3-r.s);el.style.color=r.win?"var(--accent)":"var(--muted)";}
 function showResult(minPct,pl,pr){
   const r=rating(minPct);
   document.getElementById("rl").textContent=pl;
   document.getElementById("rr").textContent=pr;
-  document.getElementById("stars").textContent="★★★".slice(0,r.s).padEnd(3,"☆").split("").map(x=>x).join("");
-  const st=document.getElementById("stars");
-  st.textContent=("★".repeat(r.s)+"☆".repeat(3-r.s));
-  st.style.color=r.win?"var(--gold)":"#556";
+  setStars(document.getElementById("stars"),r);
   const v=document.getElementById("verdict");v.textContent=r.t;v.className="verdict "+(r.win?"win":"lose");
   document.getElementById("resultMsg").textContent=r.m+"  ("+minPct.toFixed(1)+" : "+(100-minPct).toFixed(1)+")";
   document.getElementById("result").classList.add("show");
   const main=document.getElementById("btnMain");
-  main.disabled=true;
-  main.textContent = practice ? "TEKRAR DENE ↻" : "BUGÜN İÇİN KİLİTLENDİ";
-  if(practice){main.disabled=false;main.dataset.act="again";}
+  if(practice){main.disabled=false;main.textContent="Tekrar dene ↻";main.dataset.act="again";}
+  else{main.disabled=true;main.textContent="Bugün için kilitlendi";main.dataset.act="";}
   document.getElementById("btnShare").style.display="inline-block";
   window._lastResult={minPct,pl,pr,name:shape.n,rating:r};
 }
 
-/* ---------- storage ---------- */
 function dailyKey(){return "kesme-day-"+todayUTC();}
 function saveDaily(minPct,pl,pr){localStorage.setItem(dailyKey(),JSON.stringify({minPct,pl,pr,name:shape.n}));}
 function loadDaily(){try{return JSON.parse(localStorage.getItem(dailyKey()));}catch(e){return null;}}
-
 function getStats(){try{return JSON.parse(localStorage.getItem("kesme-stats"))||{};}catch(e){return{};}}
 function updateStats(minPct){
-  const s=getStats();const d=todayUTC();
-  if(s.lastDate===d)return; // already counted today
-  s.played=(s.played||0)+1;
-  const win=minPct>=48;
-  if(win)s.wins=(s.wins||0)+1;
-  // streak by consecutive UTC days
+  const s=getStats(),d=todayUTC();if(s.lastDate===d)return;
+  s.played=(s.played||0)+1;const win=minPct>=48;if(win)s.wins=(s.wins||0)+1;
   const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
-  if(win){s.streak=(s.lastWinDate===y? (s.streak||0):0)+1; s.lastWinDate=d;}
-  else{s.streak=0;}
-  s.maxStreak=Math.max(s.maxStreak||0,s.streak||0);
-  s.best=Math.max(s.best||0,minPct);
-  s.lastDate=d;
+  if(win){s.streak=(s.lastWinDate===y?(s.streak||0):0)+1;s.lastWinDate=d;}else s.streak=0;
+  s.maxStreak=Math.max(s.maxStreak||0,s.streak||0);s.best=Math.max(s.best||0,minPct);s.lastDate=d;
   localStorage.setItem("kesme-stats",JSON.stringify(s));
 }
 function renderStats(){
@@ -387,54 +361,34 @@ function renderStats(){
   document.getElementById("stStreak").textContent=s.streak||0;
   document.getElementById("stBest").textContent=s.best?s.best.toFixed(1):"—";
 }
-
-/* ---------- share ---------- */
-function emojiBar(minPct){
-  const filled=Math.max(0,Math.min(5,Math.round(minPct/10)));
-  return "🟥".repeat(0)+ "🟩".repeat(filled)+"⬛".repeat(5-filled);
-}
+function emojiBar(m){const f=Math.max(0,Math.min(5,Math.round(m/10)));return "🟩".repeat(f)+"⬜".repeat(5-f);}
 document.getElementById("btnShare").addEventListener("click",function(){
-  const r=window._lastResult;if(!r)return;
-  const win=r.minPct>=48;
-  const txt="KESME·TR "+todayUTC()+"\nŞekil: "+r.name+"\nSonuç: "+r.pl+":"+r.pr+" "+(win?"✅":"❌")+"\n"+emojiBar(r.minPct)+"\nhttps://pfiffel.com/cutle esinli";
-  if(navigator.share){navigator.share({text:txt}).catch(()=>copy(txt));}
-  else copy(txt);
+  const r=window._lastResult;if(!r)return;const win=r.minPct>=48;
+  const txt="Kesme·TR "+todayUTC()+"\nŞekil: "+r.name+"\n"+r.pl+":"+r.pr+" "+(win?"✅":"❌")+"\n"+emojiBar(r.minPct)+"\nhttps://cutle.org esinli";
+  if(navigator.share){navigator.share({text:txt}).catch(()=>copy(txt));}else copy(txt);
 });
-function copy(t){navigator.clipboard&&navigator.clipboard.writeText(t).then(()=>toast("Sonuç kopyalandı!")).catch(()=>toast("Kopyalanamadı"));}
+function copy(t){navigator.clipboard&&navigator.clipboard.writeText(t).then(()=>toast("Kopyalandı!")).catch(()=>toast("Kopyalanamadı"));}
 function toast(m){const b=document.getElementById("btnShare");const o=b.textContent;b.textContent=m;setTimeout(()=>b.textContent=o,1400);}
 
-/* ---------- main button ---------- */
-document.getElementById("btnMain").addEventListener("click",function(){
-  if(this.dataset.act==="again"){newPractice();return;}
-});
-
-/* ---------- modals ---------- */
+document.getElementById("btnMain").addEventListener("click",function(){if(this.dataset.act==="again")newPractice();});
 function openModal(id){document.getElementById(id).classList.add("show");}
 document.getElementById("btnHelp").onclick=()=>openModal("helpModal");
 document.getElementById("btnStats").onclick=()=>{renderStats();openModal("statsModal");};
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest(".modal").classList.remove("show"));
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("show");}));
 
-/* ---------- practice ---------- */
 document.getElementById("btnPractice").addEventListener("click",function(){
   practice=!practice;
   document.getElementById("practiceBadge").classList.toggle("show",practice);
-  this.style.background = practice ? "rgba(74,163,255,.25)" : "";
-  if(practice)newPractice(); else loadToday();
+  this.classList.toggle("on",practice);
+  if(practice)newPractice();else loadToday();
 });
-function newPractice(){
-  shape=POOL[Math.floor(Math.random()*POOL.length)];
-  setupShape();resetBoard();
-  document.getElementById("btnMain").textContent="KES";document.getElementById("btnMain").disabled=true;
-  document.getElementById("btnMain").dataset.act="";
-}
+function newPractice(){shape=POOL[Math.floor(Math.random()*POOL.length)];setupShape();resetBoard();}
 
-/* ---------- setup ---------- */
 function setupShape(){
   document.getElementById("shapeName").textContent=shape.n;
   const cat=document.getElementById("shapeCat");
-  cat.textContent = shape.c==="tr" ? "TÜRKİYE" : "GEOMETRİK";
-  cat.className = "cat "+shape.c;
+  cat.textContent=shape.c==="tr"?"türkiye":"geometrik";cat.className="tag "+shape.c;
   fitShape();
 }
 function resetBoard(){
@@ -442,37 +396,27 @@ function resetBoard(){
   document.getElementById("result").classList.remove("show");
   document.getElementById("btnShare").style.display="none";
   document.getElementById("hint").style.display="flex";
-  document.getElementById("btnMain").textContent="KES";
-  document.getElementById("btnMain").disabled=false;
+  const m=document.getElementById("btnMain");m.disabled=true;m.dataset.act="";m.textContent="Şekli sürükleyerek kes";
   draw();
 }
 function loadToday(){
   practice=false;
   document.getElementById("practiceBadge").classList.remove("show");
-  document.getElementById("btnPractice").style.background="";
-  shape=pickShape(todayUTC());
-  setupShape();
+  document.getElementById("btnPractice").classList.remove("on");
+  shape=pickShape(todayUTC());setupShape();
   const prev=loadDaily();
   if(prev){
-    resetBoard();
-    // reconstruct a representative locked view (no exact line stored) — just show result
-    locked=true;
+    resetBoard();locked=true;
     document.getElementById("hint").style.display="none";
     document.getElementById("btnMain").disabled=true;
-    document.getElementById("btnMain").textContent="BUGÜN İÇİN KİLİTLENDİ";
-    showResultFromSaved(prev);
-    draw();
-  }else{
-    resetBoard();
-    document.getElementById("btnMain").disabled=true; // enabled after a drag starts; guide via hint
-    document.getElementById("btnMain").textContent="ŞEKLİ SÜRÜKLEYEREK KES";
-  }
+    document.getElementById("btnMain").textContent="Bugün için kilitlendi";
+    showResultFromSaved(prev);draw();
+  }else resetBoard();
 }
 function showResultFromSaved(prev){
   const r=rating(prev.minPct);
-  document.getElementById("rl").textContent=prev.pl;
-  document.getElementById("rr").textContent=prev.pr;
-  const st=document.getElementById("stars");st.textContent=("★".repeat(r.s)+"☆".repeat(3-r.s));st.style.color=r.win?"var(--gold)":"#556";
+  document.getElementById("rl").textContent=prev.pl;document.getElementById("rr").textContent=prev.pr;
+  setStars(document.getElementById("stars"),r);
   const v=document.getElementById("verdict");v.textContent=r.t;v.className="verdict "+(r.win?"win":"lose");
   document.getElementById("resultMsg").textContent="Bugünkü hakkını kullandın. "+r.m;
   document.getElementById("result").classList.add("show");
@@ -480,9 +424,9 @@ function showResultFromSaved(prev){
   window._lastResult={minPct:prev.minPct,pl:prev.pl,pr:prev.pr,name:prev.name||shape.n,rating:r};
 }
 
+if(window.matchMedia){window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{readColors();draw();});}
 window.addEventListener("resize",resize);
-resize();
-loadToday();
+resize();loadToday();
 })();
 </script>
 </body>
