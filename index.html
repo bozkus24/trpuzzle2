@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
 <title>KESME — Günlük Şekil Kesme Bulmacası</title>
 <meta name="description" content="Her gün gelen şekli tek çizgiyle tam ortadan ikiye böl.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
@@ -11,24 +11,35 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  /* ---- KARANLIK (varsayılan): siyah zemin ---- */
   :root{
-    --bg:#0e1522; --bg-top:#15202f; --pill:#182234; --sheet:#131c2b;
-    --line:rgba(255,255,255,.08); --halo:rgba(255,221,156,.10);
-    --ink:#e9edf4; --muted:#8b97ab;
-    /* Color Hunt paleti */
-    --c1:#e73f1e; --c2:#fb6c00; --c3:#f9b637; --c4:#ffdd9c;
-    --accent:#fb6c00;
-    --sideA:#e73f1e; --sideA-edge:#fb6c00;
-    --sideB:#f9b637; --sideB-edge:#ffdd9c;
+    --bg:#000000; --pill:#15171c; --sheet:#131519;
+    --line:rgba(255,255,255,.10);
+    --ink:#f0f2f6; --muted:#98a2b2;
+    --board-bg:#111318; --board-shadow:inset 0 0 42px rgba(0,0,0,.55);
+    --cutline:#f4f0e4;
+    /* Kesim paleti (arka plan hariç şekil/parça/vurgu için) — her iki temada sabit */
+    --c1:#ec8f8d; --c2:#537d96; --c3:#44a194; --c4:#f4f0e4;
+    --accent:#44a194;
+    --sideA:#44a194; --sideA-edge:#f4f0e4;
+    --sideB:#ec8f8d; --sideB-edge:#f4f0e4;
+  }
+  /* ---- AYDINLIK: beyaz zemin ---- */
+  :root[data-theme="light"]{
+    --bg:#ffffff; --pill:#f1f3f5; --sheet:#ffffff;
+    --line:rgba(0,0,0,.12);
+    --ink:#15181d; --muted:#5f6a76;
+    --board-bg:#ffffff; --board-shadow:none;
+    --cutline:#2c3a45;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
   body{
-    background:radial-gradient(900px 420px at 50% -6%, var(--bg-top), var(--bg) 62%);
+    background:var(--bg);
     color:var(--ink);
     font-family:"Space Mono","SFMono-Regular",Menlo,Consolas,monospace;
     min-height:100vh; display:flex; flex-direction:column; align-items:center;
-    -webkit-font-smoothing:antialiased;
+    -webkit-font-smoothing:antialiased; transition:background .25s, color .25s;
   }
 
   /* ------- top bar ------- */
@@ -36,7 +47,10 @@
     width:100%; max-width:980px; padding:18px 22px 0;
     display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center;
   }
-  .tb-left{justify-self:start;} .tb-right{justify-self:end; display:flex; gap:2px;}
+  .tb-left{justify-self:start; display:flex; gap:2px;} .tb-right{justify-self:end; display:flex; gap:2px;}
+  #btnTheme .ic-sun{display:block;} #btnTheme .ic-moon{display:none;}
+  :root[data-theme="light"] #btnTheme .ic-sun{display:none;}
+  :root[data-theme="light"] #btnTheme .ic-moon{display:block;}
   .tb-center{justify-self:center; display:flex; align-items:baseline; gap:16px;}
   .iconbtn{
     background:none; border:none; padding:8px; border-radius:8px; cursor:pointer;
@@ -46,13 +60,13 @@
   .iconbtn svg{width:20px; height:20px;}
   .pal-dot{width:20px; height:20px; border-radius:50%;
     background:conic-gradient(var(--c1) 0 25%,var(--c2) 0 50%,var(--c3) 0 75%,var(--c4) 0);
-    box-shadow:0 0 0 1.5px rgba(255,255,255,.18);}
+    box-shadow:0 0 0 1.5px var(--line);}
   .chev{font-size:10px; color:var(--muted);}
   .wordmark{
     font-size:34px; font-weight:700; letter-spacing:5px; line-height:1; user-select:none;
   }
-  .wordmark .w1{color:#eef2f8; text-shadow:-2.5px 2.5px 0 rgba(231,63,30,.55);}
-  .wordmark .w2{color:var(--c2); text-shadow:2.5px 2.5px 0 rgba(249,182,55,.35);}
+  .wordmark .w1{color:var(--ink); text-shadow:-2.5px 2.5px 0 rgba(236,143,141,.45);}
+  .wordmark .w2{color:var(--accent); text-shadow:2.5px 2.5px 0 rgba(68,161,148,.30);}
   select#mode{
     font-family:inherit; font-size:14px; color:var(--muted); font-weight:400;
     background:transparent; border:none; cursor:pointer; appearance:none; -webkit-appearance:none;
@@ -86,22 +100,17 @@
   main{width:100%; display:flex; flex-direction:column; align-items:center; padding:8px 16px 34px; gap:24px;}
   .halo{
     margin-top:14px;
-    width:min(88vw,470px); aspect-ratio:1; border-radius:50%;
-    border:1px solid var(--halo);
+    width:min(88vw,470px); aspect-ratio:1;
     display:flex; align-items:center; justify-content:center;
   }
   .board{
     position:relative; width:72%; aspect-ratio:1; border-radius:50%;
     border:2.5px solid var(--accent);
-    background:radial-gradient(circle at 50% 38%, #1b2637, #111927 72%);
-    box-shadow:0 0 46px -6px var(--accent), 0 0 110px -40px var(--accent), inset 0 0 52px rgba(0,0,0,.55);
+    background:var(--board-bg);
+    box-shadow:var(--board-shadow);
     touch-action:none;
   }
-  .board.playing{animation:breathe 3.2s ease-in-out infinite; cursor:crosshair;}
-  @keyframes breathe{
-    0%,100%{box-shadow:0 0 46px -6px var(--accent), 0 0 110px -40px var(--accent), inset 0 0 52px rgba(0,0,0,.55);}
-    50%{box-shadow:0 0 60px -4px var(--accent), 0 0 130px -34px var(--accent), inset 0 0 52px rgba(0,0,0,.55);}
-  }
+  .board.playing{cursor:crosshair;}
   .board.shake{animation:shake .45s ease;}
   @keyframes shake{
     0%,100%{transform:translateX(0);}
@@ -113,16 +122,15 @@
     position:absolute; inset:0; margin:auto; width:52%; height:52%;
     background:none; border:none; cursor:pointer; color:var(--accent);
     display:flex; align-items:center; justify-content:center; transition:transform .18s;
-    filter:drop-shadow(0 0 14px rgba(251,108,0,.55));
   }
   .play:hover{transform:scale(1.07);}
   .play svg{width:78%; height:78%; margin-left:9%;}
   .board.playing .play, .board.done .play{display:none;}
 
   /* ------- tagline / result ------- */
-  .tagline{min-height:64px; text-align:center; font-size:16px; letter-spacing:.4px; line-height:1.5; color:#dbe3ef; padding:0 12px;}
+  .tagline{min-height:64px; text-align:center; font-size:16px; letter-spacing:.4px; line-height:1.5; color:var(--ink); padding:0 12px;}
   .tagline .sub{display:block; font-size:12.5px; color:var(--muted); margin-top:6px;}
-  .tagline .pct{font-size:34px; font-weight:700; color:var(--c4); letter-spacing:1px;}
+  .tagline .pct{font-size:34px; font-weight:700; color:var(--ink); letter-spacing:1px;}
   .tagline .win{color:var(--c3);} .tagline .lose{color:var(--c1);}
   .tagline .warn{color:var(--c1); font-weight:700;}
 
@@ -173,6 +181,10 @@
 
 <div class="topbar">
   <div class="tb-left">
+    <button class="iconbtn" id="btnTheme" title="Aydınlık / karanlık mod">
+      <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.4 6.4 0 0 0 10.5 10.5z"/></svg>
+    </button>
     <button class="iconbtn" id="btnPalette" title="Vurgu rengi"><span class="pal-dot"></span><span class="chev">▾</span></button>
   </div>
   <div class="tb-center">
@@ -212,7 +224,7 @@
     <div class="board" id="board">
       <canvas id="cv"></canvas>
       <button class="play" id="play" title="Başlat">
-        <svg viewBox="0 0 24 24" fill="rgba(251,108,0,.10)" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M7.5 4.5l12 7.5-12 7.5z"/></svg>
+        <svg viewBox="0 0 24 24" fill="rgba(68,161,148,.12)" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M7.5 4.5l12 7.5-12 7.5z"/></svg>
       </button>
     </div>
   </div>
@@ -386,12 +398,13 @@ function fillPoly(pts,fill,stroke,glow){
 }
 function dot(p,r,color){ctx.beginPath();ctx.arc(p[0],p[1],r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
 function drawSegment(a,b,final){
-  ctx.strokeStyle=cssVar('--c4');ctx.lineCap="round";
+  const cl=cssVar('--cutline');
+  ctx.strokeStyle=cl;ctx.lineCap="round";
   ctx.lineWidth=final?3:2;
   ctx.setLineDash(final?[]:[6,7]);
   ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
   ctx.setLineDash([]);
-  dot(a,final?4.5:4,cssVar('--c4'));dot(b,final?4.5:4,cssVar('--c4'));
+  dot(a,final?4.5:4,cl);dot(b,final?4.5:4,cl);
 }
 function draw(){
   ctx.clearRect(0,0,size,size);
@@ -532,9 +545,9 @@ function renderStats(){
 /* ---------- paylaş ---------- */
 /* 5 dolu kare yalnız kazanınca (pf>=96) — kayıp %90-95, %100 ile karışmasın */
 function emojiBar(pf){
-  if(pf>=96)return "🟧🟧🟧🟧🟧";
+  if(pf>=96)return "🟩🟩🟩🟩🟩";
   const f=Math.max(0,Math.min(4,Math.floor(pf/20)));
-  return "🟧".repeat(f)+"⬛".repeat(5-f);
+  return "🟩".repeat(f)+"⬛".repeat(5-f);
 }
 document.getElementById("btnShare").addEventListener("click",function(){
   const r=window._last;if(!r)return;
@@ -561,7 +574,7 @@ function copy(t){
 }
 
 /* ---------- vurgu rengi ---------- */
-const PALETTE=[{n:"Kırmızı",v:"#e73f1e"},{n:"Turuncu",v:"#fb6c00"},{n:"Altın",v:"#f9b637"},{n:"Krem",v:"#ffdd9c"}];
+const PALETTE=[{n:"Teal",v:"#44a194"},{n:"Mavi-gri",v:"#537d96"},{n:"Mercan",v:"#ec8f8d"},{n:"Krem",v:"#f4f0e4"}];
 function applyAccent(v){
   document.documentElement.style.setProperty('--accent',v);
   try{localStorage.setItem('kesme-accent',v);}catch(e){}
@@ -574,6 +587,17 @@ PALETTE.forEach(p=>{
   d.className="swatch";d.style.background=p.v;d.dataset.v=p.v;d.title=p.n;
   d.onclick=()=>applyAccent(p.v);sw.appendChild(d);
 });
+
+/* ---------- tema (aydınlık/karanlık) ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  try{localStorage.setItem('kesme-theme',t);}catch(e){}
+  draw();
+}
+document.getElementById("btnTheme").onclick=function(){
+  const cur=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';
+  applyTheme(cur==='light'?'dark':'light');
+};
 
 /* ---------- pencereler ---------- */
 function openModal(id){document.getElementById(id).classList.add("show");}
@@ -602,9 +626,17 @@ function cdTick(){
 
 /* ---------- başlangıç ---------- */
 (function init(){
+  /* tema: kayıtlı yoksa cihaz tercihine göre başla, sonra siyah/beyaz */
+  let savedTheme=null;try{savedTheme=localStorage.getItem('kesme-theme');}catch(e){}
+  if(savedTheme!=='light'&&savedTheme!=='dark'){
+    savedTheme=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+  }
+  document.documentElement.setAttribute('data-theme',savedTheme);
+  /* vurgu rengi: yalnız güncel paletteki bir değerse geri yükle (eski turuncu tercihini yok say) */
   let savedAcc=null;try{savedAcc=localStorage.getItem('kesme-accent');}catch(e){}
-  if(savedAcc)document.documentElement.style.setProperty('--accent',savedAcc);
-  markSwatch(savedAcc||cssVar('--accent'));
+  const validAcc=PALETTE.some(p=>p.v.toLowerCase()===(savedAcc||'').toLowerCase());
+  if(validAcc)document.documentElement.style.setProperty('--accent',savedAcc);
+  markSwatch(validAcc?savedAcc:cssVar('--accent'));
   document.getElementById("mode").value=mode; /* tarayıcı form-restore ile uyuşmazlık olmasın */
   resize();
   const prev=loadDaily();
