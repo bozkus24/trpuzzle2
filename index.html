@@ -18,8 +18,8 @@
     /* Color Hunt paleti */
     --c1:#e73f1e; --c2:#fb6c00; --c3:#f9b637; --c4:#ffdd9c;
     --accent:#fb6c00;
-    --sideA:#e73f1e; --sideA-edge:#ff8a66;
-    --sideB:#f9b637; --sideB-edge:#ffd678;
+    --sideA:#e73f1e; --sideA-edge:#fb6c00;
+    --sideB:#f9b637; --sideB-edge:#ffdd9c;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
@@ -34,7 +34,7 @@
   /* ------- top bar ------- */
   .topbar{
     width:100%; max-width:980px; padding:18px 22px 0;
-    display:grid; grid-template-columns:1fr auto 1fr; align-items:center;
+    display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center;
   }
   .tb-left{justify-self:start;} .tb-right{justify-self:end; display:flex; gap:2px;}
   .tb-center{justify-self:center; display:flex; align-items:baseline; gap:16px;}
@@ -138,7 +138,7 @@
   button.act.primary:hover{filter:brightness(1.1); color:#221204;}
   button.act:active{transform:translateY(1px);}
 
-  footer{color:#5b6980; font-size:11px; padding:0 18px 26px; text-align:center; max-width:560px; line-height:1.6;}
+  footer{color:#748399; font-size:11px; padding:0 18px 26px; text-align:center; max-width:560px; line-height:1.6;}
   footer a{color:#748399;}
 
   /* ------- modals ------- */
@@ -154,16 +154,18 @@
   .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:18px 0 8px;}
   .stat{text-align:center; background:var(--pill); border:1px solid var(--line); border-radius:10px; padding:14px 4px;}
   .stat .n{font-size:21px; font-weight:700; color:var(--c3);}
-  .stat .t{font-size:9px; color:var(--muted); letter-spacing:.4px; margin-top:4px;}
+  .stat .t{font-size:10.5px; color:var(--muted); letter-spacing:.4px; margin-top:4px;}
   .swatches{display:flex; gap:10px; margin-top:14px;}
   .swatch{flex:1; height:40px; border-radius:9px; cursor:pointer; border:none; transition:transform .12s;}
   .swatch:hover{transform:translateY(-2px);}
   .swatch.sel{outline:2.5px solid var(--ink); outline-offset:2.5px;}
 
   @media(max-width:560px){
-    .wordmark{font-size:26px; letter-spacing:4px;}
-    .topbar{padding:14px 12px 0;}
-    .tb-center{gap:10px;}
+    .wordmark{font-size:24px; letter-spacing:3px;}
+    .topbar{padding:14px 10px 0;}
+    .tb-center{gap:8px;}
+    .iconbtn{padding:8px 4px;}
+    select#mode{font-size:13px;}
   }
 </style>
 </head>
@@ -182,7 +184,7 @@
   </div>
   <div class="tb-right">
     <button class="iconbtn" id="btnArchive" title="Rastgele şekil (antrenman)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
     </button>
     <button class="iconbtn" id="btnStats" title="İstatistik">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V11M12 21V4M19 21v-6"/></svg>
@@ -202,7 +204,7 @@
   </div>
 
   <div class="scorerow">
-    <span class="score" id="scorePill" style="visibility:hidden;">Skor(<b id="scoreVal">—</b>)</span>
+    <span class="score" id="scorePill" style="display:none;">Skor(<b id="scoreVal">—</b>)</span>
     <span class="wheel"></span>
   </div>
 
@@ -353,10 +355,10 @@ function validSegmentCut(pts,a,b){
 const board=document.getElementById("board"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 const tagline=document.getElementById("tagline"),actions=document.getElementById("actions");
 let dpr=1,size=300,shape=null,scaled=[],start=null,end=null,cut=null,state="idle",mode="daily",warnTimer=null;
+let roundDate=null; /* günlük turun ait olduğu UTC günü — gece yarısını ortalayan turlar başladığı güne yazılır */
 
 function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 function todayUTC(){return new Date().toISOString().slice(0,10);}
-function pickDaily(){return POOL[hashStr(todayUTC())%POOL.length];}
 function pickRandom(){return POOL[Math.floor(Math.random()*POOL.length)];}
 
 function fitShape(){
@@ -367,7 +369,7 @@ function fitShape(){
   scaled=shape.p.map(pt=>[pt[0]*s+ox,pt[1]*s+oy]);
 }
 function resize(){
-  const r=board.getBoundingClientRect();size=r.width;dpr=window.devicePixelRatio||1;
+  const r=cv.getBoundingClientRect();size=r.width;dpr=window.devicePixelRatio||1;
   cv.width=size*dpr;cv.height=size*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
   if(shape)fitShape();
   if(state==="done"&&window._last&&window._last.cut){const c=window._last.cut.map(v=>v*size);cut={A:[c[0],c[1]],N:[-(c[3]-c[1]),(c[2]-c[0])],p1:[c[0],c[1]],p2:[c[2],c[3]]};}
@@ -441,7 +443,8 @@ function play(){
   if(mode==="daily"){
     const prev=loadDaily();
     if(prev){restoreDaily(prev);return;}
-    startRound(pickDaily());
+    roundDate=todayUTC();
+    startRound(POOL[hashStr(roundDate)%POOL.length]);
   }else startRound(pickRandom());
 }
 function perfectPct(minPct){return Math.max(0,Math.round(minPct*2));}
@@ -459,8 +462,9 @@ function finalize(a,b){
   const pl=Math.max(0,Math.min(100,Math.round(aL/total*100))),pr=100-pl;
   cut={A:[a[0],a[1]],N:N,p1:[a[0],a[1]],p2:[b[0],b[1]]};
   const rec={minPct,pl,pr,name:shape.n,pf:perfectPct(minPct),
+    date:(mode==="daily"&&roundDate)?roundDate:todayUTC(),
     cut:[a[0]/size,a[1]/size,b[0]/size,b[1]/size]};
-  if(mode==="daily"){saveDaily(rec);updateStats(minPct);}
+  if(mode==="daily"){saveDaily(rec);updateStats(rec);}
   showDone(rec,false);
 }
 function showDone(rec,restored){
@@ -470,14 +474,15 @@ function showDone(rec,restored){
     '<span class="'+(v.w?'win':'lose')+'">'+v.t+'</span>'+
     '<span class="sub">'+rec.pl+':'+rec.pr+' · '+rec.name+(restored?' · bugünkü hakkını kullandın':'')+'</span>';
   const sp=document.getElementById("scorePill");
-  sp.style.visibility="visible";
+  sp.style.display="inline-flex";
   document.getElementById("scoreVal").textContent='%'+rec.pf;
   actions.classList.remove("hide");
   document.getElementById("btnAgain").textContent = mode==="daily" ? "↻ ANTRENMAN" : "↻ YENİDEN";
   window._last=rec;draw();
 }
 function restoreDaily(prev){
-  shape=pickDaily();fitShape();
+  roundDate=prev.date||todayUTC();
+  shape=POOL[hashStr(roundDate)%POOL.length];fitShape();
   window._last=prev;
   if(prev.cut){const c=prev.cut.map(v=>v*size);cut={A:[c[0],c[1]],N:[-(c[3]-c[1]),(c[2]-c[0])],p1:[c[0],c[1]],p2:[c[2],c[3]]};}
   showDone(prev,true);
@@ -488,9 +493,10 @@ document.getElementById("btnAgain").addEventListener("click",function(){
   if(mode==="daily"){mode="practice";document.getElementById("mode").value="practice";}
   startRound(pickRandom());
 });
+function hideScore(){document.getElementById("scorePill").style.display="none";}
 document.getElementById("mode").addEventListener("change",function(){
   mode=this.value;shape=null;cut=null;state="idle";
-  board.classList.remove("playing","done");actions.classList.add("hide");
+  board.classList.remove("playing","done");actions.classList.add("hide");hideScore();
   if(mode==="daily"){
     const prev=loadDaily();
     if(prev)restoreDaily(prev);
@@ -502,16 +508,17 @@ document.getElementById("btnArchive").addEventListener("click",function(){
 });
 
 /* ---------- kayıt ---------- */
-function dailyKey(){return "kesme2-day-"+todayUTC();}
-function saveDaily(r){try{localStorage.setItem(dailyKey(),JSON.stringify(r));}catch(e){}}
-function loadDaily(){try{return JSON.parse(localStorage.getItem(dailyKey()));}catch(e){return null;}}
+function saveDaily(r){try{localStorage.setItem("kesme2-day-"+r.date,JSON.stringify(r));}catch(e){}}
+function loadDaily(){try{return JSON.parse(localStorage.getItem("kesme2-day-"+todayUTC()));}catch(e){return null;}}
 function getStats(){try{return JSON.parse(localStorage.getItem("kesme2-stats"))||{};}catch(e){return{};}}
-function updateStats(minPct){
-  const s=getStats(),d=todayUTC();if(s.lastDate===d)return;
-  s.played=(s.played||0)+1;const win=minPct>=48;if(win)s.wins=(s.wins||0)+1;
-  const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+function updateStats(rec){
+  const s=getStats(),d=rec.date;if(s.lastDate===d)return;
+  s.played=(s.played||0)+1;
+  const win=rec.pf>=96; /* ekranda gösterilen skorla aynı eşik */
+  if(win)s.wins=(s.wins||0)+1;
+  const y=new Date(Date.parse(d+"T00:00:00Z")-864e5).toISOString().slice(0,10);
   if(win){s.streak=(s.lastWinDate===y?(s.streak||0):0)+1;s.lastWinDate=d;}else s.streak=0;
-  s.best=Math.max(s.best||0,perfectPct(minPct));s.lastDate=d;
+  s.best=Math.max(s.best||0,rec.pf);s.lastDate=d;
   try{localStorage.setItem("kesme2-stats",JSON.stringify(s));}catch(e){}
 }
 function renderStats(){
@@ -523,18 +530,34 @@ function renderStats(){
 }
 
 /* ---------- paylaş ---------- */
-function emojiBar(pf){const f=Math.max(0,Math.min(5,Math.round(pf/20)));return "🟧".repeat(f)+"⬛".repeat(5-f);}
+/* 5 dolu kare yalnız kazanınca (pf>=96) — kayıp %90-95, %100 ile karışmasın */
+function emojiBar(pf){
+  if(pf>=96)return "🟧🟧🟧🟧🟧";
+  const f=Math.max(0,Math.min(4,Math.floor(pf/20)));
+  return "🟧".repeat(f)+"⬛".repeat(5-f);
+}
 document.getElementById("btnShare").addEventListener("click",function(){
   const r=window._last;if(!r)return;
-  const txt="KESME "+todayUTC()+"\n"+r.name+" · "+r.pl+":"+r.pr+" · %"+r.pf+"\n"+emojiBar(r.pf);
+  const head=(mode==="daily")?("KESME "+(r.date||todayUTC())):"KESME (antrenman)";
+  const txt=head+"\n"+r.name+" · "+r.pl+":"+r.pr+" · %"+r.pf+" "+(r.pf>=96?"✅":"❌")+"\n"+emojiBar(r.pf);
   if(navigator.share)navigator.share({text:txt}).catch(()=>copy(txt));else copy(txt);
 });
+function copiedFeedback(){
+  const b=document.getElementById("btnShare");const o=b.textContent;
+  b.textContent="KOPYALANDI!";setTimeout(()=>b.textContent=o,1300);
+}
+function fallbackCopy(t){
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=t;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    const ok=document.execCommand("copy");ta.remove();return ok;
+  }catch(e){return false;}
+}
 function copy(t){
-  if(!navigator.clipboard)return;
-  navigator.clipboard.writeText(t).then(()=>{
-    const b=document.getElementById("btnShare");const o=b.textContent;
-    b.textContent="KOPYALANDI!";setTimeout(()=>b.textContent=o,1300);
-  }).catch(()=>{});
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(t).then(copiedFeedback).catch(()=>{if(fallbackCopy(t))copiedFeedback();});
+  }else if(fallbackCopy(t))copiedFeedback();
 }
 
 /* ---------- vurgu rengi ---------- */
@@ -568,6 +591,13 @@ function cdTick(){
   let s=Math.max(0,Math.floor((next-now.getTime())/1000));
   const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60);s%=60;
   document.getElementById("cdTime").textContent=pad2(h)+":"+pad2(m)+":"+pad2(s);
+  /* UTC gün dönümü: sekme açıkken yeni günün şekli oynanabilir olsun */
+  if(mode==="daily"&&state==="done"&&roundDate&&roundDate!==todayUTC()&&!loadDaily()){
+    shape=null;cut=null;window._last=null;state="idle";roundDate=null;
+    board.classList.remove("playing","done");actions.classList.add("hide");hideScore();
+    tagline.textContent="Yeni gün, yeni şekil! ▶ ile başla.";
+    draw();
+  }
 }
 
 /* ---------- başlangıç ---------- */
@@ -575,6 +605,7 @@ function cdTick(){
   let savedAcc=null;try{savedAcc=localStorage.getItem('kesme-accent');}catch(e){}
   if(savedAcc)document.documentElement.style.setProperty('--accent',savedAcc);
   markSwatch(savedAcc||cssVar('--accent'));
+  document.getElementById("mode").value=mode; /* tarayıcı form-restore ile uyuşmazlık olmasın */
   resize();
   const prev=loadDaily();
   if(prev)restoreDaily(prev);
