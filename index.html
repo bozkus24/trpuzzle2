@@ -368,6 +368,7 @@ const board=document.getElementById("board"),cv=document.getElementById("cv"),ct
 const tagline=document.getElementById("tagline"),actions=document.getElementById("actions");
 let dpr=1,size=300,shape=null,scaled=[],start=null,end=null,cut=null,state="idle",mode="daily",warnTimer=null;
 let roundDate=null; /* günlük turun ait olduğu UTC günü — gece yarısını ortalayan turlar başladığı güne yazılır */
+let sepT=0,sepRAF=0; /* kesim sonrası parçaların ayrılma ilerlemesi (0..1) */
 
 function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 function todayUTC(){return new Date().toISOString().slice(0,10);}
@@ -390,11 +391,24 @@ function resize(){
 
 /* ---------- çizim ---------- */
 function pathPoly(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();}
-function fillPoly(pts,fill,stroke,glow){
-  if(pts.length<3)return;ctx.save();
-  if(glow){ctx.shadowColor=fill;ctx.shadowBlur=size*0.05;}
-  pathPoly(pts);ctx.fillStyle=fill;ctx.fill();ctx.restore();
-  if(stroke){pathPoly(pts);ctx.lineWidth=2;ctx.strokeStyle=stroke;ctx.stroke();}
+function hex2rgb(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)];}
+/* amt>0 aydınlat, amt<0 koyulaştır */
+function shade(hex,amt){const c=hex2rgb(hex);const to=amt<0?0:255,t=Math.abs(amt);const m=v=>Math.round(v+(to-v)*t);return'rgb('+m(c[0])+','+m(c[1])+','+m(c[2])+')';}
+function unit(v){const d=Math.hypot(v[0],v[1])||1;return[v[0]/d,v[1]/d];}
+/* degrade + yumuşak gölgeyle dolu şekil — kullanıcı şekli "hissetsin" */
+function fillShape(pts,baseHex){
+  if(pts.length<3)return;
+  let mny=1e9,mxy=-1e9;pts.forEach(p=>{if(p[1]<mny)mny=p[1];if(p[1]>mxy)mxy=p[1];});
+  const g=ctx.createLinearGradient(0,mny,0,mxy+0.001);
+  g.addColorStop(0,shade(baseHex,0.17));
+  g.addColorStop(0.5,baseHex);
+  g.addColorStop(1,shade(baseHex,-0.15));
+  ctx.save();
+  ctx.shadowColor="rgba(0,0,0,.38)";ctx.shadowBlur=size*0.035;ctx.shadowOffsetY=size*0.014;
+  pathPoly(pts);ctx.fillStyle=g;ctx.fill();
+  ctx.restore();
+  /* aynı tonun koyusuyla ince kenar — biçimi netleştirir */
+  pathPoly(pts);ctx.lineWidth=1.5;ctx.strokeStyle=shade(baseHex,-0.24);ctx.stroke();
 }
 function dot(p,r,color){ctx.beginPath();ctx.arc(p[0],p[1],r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
 function drawSegment(a,b,final){
@@ -410,13 +424,27 @@ function draw(){
   ctx.clearRect(0,0,size,size);
   if(state==="idle"||!shape)return;
   if(state==="done"&&cut){
-    fillPoly(clipHalf(scaled,cut.A,cut.N),cssVar('--sideA'),cssVar('--sideA-edge'),false);
-    fillPoly(clipHalf(scaled,cut.A,[-cut.N[0],-cut.N[1]]),cssVar('--sideB'),cssVar('--sideB-edge'),false);
-    drawSegment(cut.p1,cut.p2,true);
+    const uN=unit(cut.N),off=sepT*size*0.05;
+    const A=clipHalf(scaled,cut.A,cut.N).map(p=>[p[0]+uN[0]*off,p[1]+uN[1]*off]);
+    const B=clipHalf(scaled,cut.A,[-cut.N[0],-cut.N[1]]).map(p=>[p[0]-uN[0]*off,p[1]-uN[1]*off]);
+    fillShape(A,cssVar('--sideA'));
+    fillShape(B,cssVar('--sideB'));
+    if(sepT<0.85){ctx.save();ctx.globalAlpha=1-sepT/0.85;drawSegment(cut.p1,cut.p2,true);ctx.restore();}
   }else{
-    fillPoly(scaled,cssVar('--c2'),null,false);
+    fillShape(scaled,cssVar('--c2'));
     if(start&&end)drawSegment(start,end,false); /* çizgi: bastığın noktadan şu anki noktaya */
   }
+}
+function easeOutCubic(x){return 1-Math.pow(1-x,3);}
+function animateSeparation(){
+  if(sepRAF)cancelAnimationFrame(sepRAF);
+  const dur=470,t0=(performance&&performance.now)?performance.now():Date.now();
+  function frame(now){
+    const k=Math.min(1,((now||Date.now())-t0)/dur);
+    sepT=easeOutCubic(k);draw();
+    if(k<1)sepRAF=requestAnimationFrame(frame);else sepRAF=0;
+  }
+  sepRAF=requestAnimationFrame(frame);
 }
 
 /* ---------- girdi ---------- */
@@ -438,6 +466,7 @@ cv.addEventListener("touchend",up,{passive:false});cv.addEventListener("touchcan
 /* ---------- akış ---------- */
 function playingTagline(){tagline.innerHTML=shape.n+'<span class="sub">bir noktadan basılı tut, öbür tarafa sürükleyip bırak</span>';}
 function startRound(sh){
+  if(sepRAF){cancelAnimationFrame(sepRAF);sepRAF=0;}sepT=0;
   shape=sh;fitShape();start=end=cut=null;state="playing";
   board.classList.remove("done");board.classList.add("playing");
   actions.classList.add("hide");
@@ -491,7 +520,9 @@ function showDone(rec,restored){
   document.getElementById("scoreVal").textContent='%'+rec.pf;
   actions.classList.remove("hide");
   document.getElementById("btnAgain").textContent = mode==="daily" ? "↻ ANTRENMAN" : "↻ YENİDEN";
-  window._last=rec;draw();
+  window._last=rec;
+  if(restored){sepT=1;draw();}       /* kayıtlı sonuç: ayrık göster, animasyon yok */
+  else{sepT=0;animateSeparation();}  /* taze kesim: parçalar ayrılsın */
 }
 function restoreDaily(prev){
   roundDate=prev.date||todayUTC();
