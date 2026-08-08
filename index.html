@@ -64,21 +64,18 @@
   .wordmark{
     font-size:34px; font-weight:700; letter-spacing:5px; line-height:1; user-select:none;
   }
-  .wordmark .w1{color:var(--ink); text-shadow:-2.5px 2.5px 0 rgba(124,107,240,.30);}
-  .wordmark .w2{color:var(--accent); text-shadow:2.5px 2.5px 0 rgba(51,183,196,.28);}
-  select#mode{
-    font-family:inherit; font-size:14px; color:var(--muted); font-weight:400;
-    background:transparent; border:none; cursor:pointer; appearance:none; -webkit-appearance:none;
-    padding-right:16px;
-    background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-    background-position:right 6px top 55%, right 2px top 55%;
-    background-size:4.5px 4.5px; background-repeat:no-repeat;
-  }
-  select#mode:hover{color:var(--ink);}
-  select#mode option{background:var(--sheet); color:var(--ink);}
+  .wordmark .w1{color:var(--ink);}
+  .wordmark .w2{color:var(--accent);}
+  /* modern segment (günlük / antrenman) kontrolü */
+  .moderow{display:flex; justify-content:center; margin-top:0;}
+  .seg{display:inline-flex; background:var(--pill); border:1px solid var(--line); border-radius:999px; padding:4px;}
+  .seg-btn{font-family:inherit; font-size:12.5px; font-weight:700; letter-spacing:.4px; color:var(--muted);
+    background:none; border:none; padding:8px 20px; border-radius:999px; cursor:pointer; transition:.18s; white-space:nowrap;}
+  .seg-btn:hover{color:var(--ink);}
+  .seg-btn.active{background:var(--accent); color:#fff;}
 
   /* ------- pills row ------- */
-  .cdrow{margin-top:16px; display:flex; justify-content:center;}
+  .cdrow{margin-top:0; display:flex; justify-content:center;}
   .cd{
     display:inline-flex; align-items:center; gap:8px;
     background:var(--pill); border:1px solid var(--line); border-radius:8px;
@@ -86,7 +83,7 @@
   }
   .cd svg{width:14px; height:14px;}
   .cd b{color:var(--c3); font-weight:700; letter-spacing:.5px;}
-  .scorerow{margin-top:12px; display:flex; justify-content:center; align-items:center; gap:10px; min-height:30px;}
+  .scorerow{margin-top:0; display:flex; justify-content:center; align-items:center; gap:10px; min-height:30px;}
   .score{
     background:var(--pill); border:1px solid var(--line); border-radius:8px;
     padding:6px 12px; font-size:12.5px; color:var(--muted);
@@ -97,14 +94,14 @@
     background:conic-gradient(var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));}
 
   /* ------- stage ------- */
-  main{width:100%; display:flex; flex-direction:column; align-items:center; padding:8px 16px 34px; gap:24px;}
+  main{width:100%; display:flex; flex-direction:column; align-items:center; padding:10px 16px 34px; gap:14px;}
   .halo{
-    margin-top:14px;
-    width:min(88vw,470px); aspect-ratio:1;
+    margin-top:0;
+    width:min(94vw,560px); aspect-ratio:1;
     display:flex; align-items:center; justify-content:center;
   }
   .board{
-    position:relative; width:72%; aspect-ratio:1; border-radius:50%;
+    position:relative; width:92%; aspect-ratio:1; border-radius:50%;
     border:1.5px solid var(--ring);
     background:var(--board-bg);
     touch-action:none;
@@ -168,11 +165,10 @@
   .swatch.sel{outline:2.5px solid var(--ink); outline-offset:2.5px;}
 
   @media(max-width:560px){
-    .wordmark{font-size:24px; letter-spacing:3px;}
+    .wordmark{font-size:26px; letter-spacing:3px;}
     .topbar{padding:14px 10px 0;}
-    .tb-center{gap:8px;}
-    .iconbtn{padding:8px 4px;}
-    select#mode{font-size:13px;}
+    .iconbtn{padding:8px 5px;}
+    .seg-btn{padding:8px 16px; font-size:12px;}
   }
 </style>
 </head>
@@ -188,10 +184,6 @@
   </div>
   <div class="tb-center">
     <div class="wordmark"><span class="w1">KES</span><span class="w2">ME</span></div>
-    <select id="mode" title="Mod">
-      <option value="daily">günlük</option>
-      <option value="practice">antrenman</option>
-    </select>
   </div>
   <div class="tb-right">
     <button class="iconbtn" id="btnArchive" title="Rastgele şekil (antrenman)">
@@ -207,6 +199,13 @@
 </div>
 
 <main>
+  <div class="moderow">
+    <div class="seg" id="modeSeg">
+      <button class="seg-btn" data-mode="daily">Günlük</button>
+      <button class="seg-btn" data-mode="practice">Antrenman</button>
+    </div>
+  </div>
+
   <div class="cdrow">
     <span class="cd">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9.5v3.8l2.6 1.6M9.5 2.5h5"/></svg>
@@ -529,12 +528,15 @@ function restoreDaily(prev){
 
 document.getElementById("play").addEventListener("click",play);
 document.getElementById("btnAgain").addEventListener("click",function(){
-  if(mode==="daily"){mode="practice";document.getElementById("mode").value="practice";}
+  if(mode==="daily")setSeg("practice");
   startRound(pickRandom());
 });
 function hideScore(){document.getElementById("scorePill").style.display="none";}
-document.getElementById("mode").addEventListener("change",function(){
-  mode=this.value;shape=null;cut=null;state="idle";
+/* segment kontrolü: aktif butonu güncelle (mode değişkenini de set eder) */
+function setSeg(m){mode=m;document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));}
+/* mod seç + ekranı sıfırla */
+function selectMode(m){
+  setSeg(m);shape=null;cut=null;state="idle";
   board.classList.remove("playing","done");actions.classList.add("hide");hideScore();
   if(mode==="daily"){
     const prev=loadDaily();
@@ -542,9 +544,10 @@ document.getElementById("mode").addEventListener("change",function(){
     else{tagline.textContent="Şekli tam ortadan ikiye böl!";draw();}
   }else{tagline.innerHTML='Antrenman modu<span class="sub">▶ ile sınırsız şekil — günlük skorun etkilenmez</span>';draw();}
   refreshStreakPill();
-});
+}
+document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.mode!==mode)selectMode(b.dataset.mode);}));
 document.getElementById("btnArchive").addEventListener("click",function(){
-  mode="practice";document.getElementById("mode").value="practice";startRound(pickRandom());
+  setSeg("practice");startRound(pickRandom());
 });
 
 /* ---------- kayıt ---------- */
@@ -674,7 +677,7 @@ function cdTick(){
   const validAcc=PALETTE.some(p=>p.v.toLowerCase()===(savedAcc||'').toLowerCase());
   if(validAcc)document.documentElement.style.setProperty('--accent',savedAcc);
   markSwatch(validAcc?savedAcc:cssVar('--accent'));
-  document.getElementById("mode").value=mode; /* tarayıcı form-restore ile uyuşmazlık olmasın */
+  setSeg(mode); /* segment kontrolünü başlangıç moduyla eşitle */
   resize();
   const prev=loadDaily();
   if(prev)restoreDaily(prev);
