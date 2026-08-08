@@ -366,7 +366,7 @@ const board=document.getElementById("board"),cv=document.getElementById("cv"),ct
 const tagline=document.getElementById("tagline"),actions=document.getElementById("actions");
 let dpr=1,size=300,shape=null,scaled=[],start=null,end=null,cut=null,state="idle",mode="daily",warnTimer=null;
 let roundDate=null; /* günlük turun ait olduğu UTC günü — gece yarısını ortalayan turlar başladığı güne yazılır */
-let sepT=0,sepRAF=0; /* kesim sonrası parçaların ayrılma ilerlemesi (0..1) */
+let sepT=0,cutT=1,sepRAF=0; /* cutT: bıçağın ilerlemesi, sepT: parçaların ayrılması (0..1) */
 
 function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 function todayUTC(){return new Date().toISOString().slice(0,10);}
@@ -413,25 +413,40 @@ function draw(){
   ctx.clearRect(0,0,size,size);
   if(state==="idle"||!shape)return;
   if(state==="done"&&cut){
-    const uN=unit(cut.N),off=sepT*size*0.05;
-    const A=clipHalf(scaled,cut.A,cut.N).map(p=>[p[0]+uN[0]*off,p[1]+uN[1]*off]);
-    const B=clipHalf(scaled,cut.A,[-cut.N[0],-cut.N[1]]).map(p=>[p[0]-uN[0]*off,p[1]-uN[1]*off]);
-    fillShape(A,cssVar('--sideA'));
-    fillShape(B,cssVar('--sideB'));
-    if(sepT<0.85){ctx.save();ctx.globalAlpha=1-sepT/0.85;drawSegment(cut.p1,cut.p2,true);ctx.restore();}
+    if(cutT<1){
+      /* KESME fazı: bütün şekil dururken parlak bıçak p1'den p2'ye ilerler */
+      fillShape(scaled,cssVar('--c2'));
+      const tip=[cut.p1[0]+(cut.p2[0]-cut.p1[0])*cutT, cut.p1[1]+(cut.p2[1]-cut.p1[1])*cutT];
+      ctx.save();
+      ctx.strokeStyle=cssVar('--cutline');ctx.lineCap="round";ctx.lineWidth=Math.max(3,size*0.012);
+      ctx.shadowColor=cssVar('--accent');ctx.shadowBlur=size*0.05;
+      ctx.beginPath();ctx.moveTo(cut.p1[0],cut.p1[1]);ctx.lineTo(tip[0],tip[1]);ctx.stroke();
+      ctx.restore();
+      dot(tip,Math.max(4,size*0.016),cssVar('--accent')); /* parlayan bıçak ucu */
+    }else{
+      /* AYRILMA fazı: iki parça kesim çizgisine dik uzaklaşır */
+      const uN=unit(cut.N),off=sepT*size*0.05;
+      const A=clipHalf(scaled,cut.A,cut.N).map(p=>[p[0]+uN[0]*off,p[1]+uN[1]*off]);
+      const B=clipHalf(scaled,cut.A,[-cut.N[0],-cut.N[1]]).map(p=>[p[0]-uN[0]*off,p[1]-uN[1]*off]);
+      fillShape(A,cssVar('--sideA'));
+      fillShape(B,cssVar('--sideB'));
+      if(sepT<0.85){ctx.save();ctx.globalAlpha=1-sepT/0.85;drawSegment(cut.p1,cut.p2,true);ctx.restore();}
+    }
   }else{
     fillShape(scaled,cssVar('--c2'));
     if(start&&end)drawSegment(start,end,false); /* çizgi: bastığın noktadan şu anki noktaya */
   }
 }
 function easeOutCubic(x){return 1-Math.pow(1-x,3);}
-function animateSeparation(){
+/* önce bıçak şekli keser (cutT), sonra parçalar ayrılır (sepT) */
+function animateCut(){
   if(sepRAF)cancelAnimationFrame(sepRAF);
-  const dur=470,t0=(performance&&performance.now)?performance.now():Date.now();
+  const CUT=260,SEP=470,t0=(performance&&performance.now)?performance.now():Date.now();
   function frame(now){
-    const k=Math.min(1,((now||Date.now())-t0)/dur);
-    sepT=easeOutCubic(k);draw();
-    if(k<1)sepRAF=requestAnimationFrame(frame);else sepRAF=0;
+    const e=((now||Date.now())-t0);
+    if(e<CUT){cutT=e/CUT;sepT=0;draw();sepRAF=requestAnimationFrame(frame);}
+    else{cutT=1;const k=Math.min(1,(e-CUT)/SEP);sepT=easeOutCubic(k);draw();
+      if(k<1)sepRAF=requestAnimationFrame(frame);else sepRAF=0;}
   }
   sepRAF=requestAnimationFrame(frame);
 }
@@ -455,7 +470,7 @@ cv.addEventListener("touchend",up,{passive:false});cv.addEventListener("touchcan
 /* ---------- akış ---------- */
 function playingTagline(){tagline.innerHTML='Şekli tam ortadan ikiye böl!<span class="sub">bir noktadan basılı tut, öbür tarafa sürükleyip bırak</span>';}
 function startRound(sh){
-  if(sepRAF){cancelAnimationFrame(sepRAF);sepRAF=0;}sepT=0;
+  if(sepRAF){cancelAnimationFrame(sepRAF);sepRAF=0;}sepT=0;cutT=1;
   shape=sh;fitShape();start=end=cut=null;state="playing";
   board.classList.remove("done");board.classList.add("playing");
   actions.classList.add("hide");
@@ -514,8 +529,8 @@ function showDone(rec,restored){
   actions.classList.remove("hide");
   document.getElementById("btnAgain").textContent = mode==="daily" ? "↻ ANTRENMAN" : "↻ YENİDEN";
   window._last=rec;
-  if(restored){sepT=1;draw();}       /* kayıtlı sonuç: ayrık göster, animasyon yok */
-  else{sepT=0;animateSeparation();}  /* taze kesim: parçalar ayrılsın */
+  if(restored){cutT=1;sepT=1;draw();}    /* kayıtlı sonuç: ayrık göster, animasyon yok */
+  else{cutT=0;sepT=0;animateCut();}      /* taze kesim: önce bıçak, sonra ayrılma */
 }
 function restoreDaily(prev){
   if(prev&&prev.minor===undefined){const sc=scoreOf(prev.minPct!=null?prev.minPct:Math.min(prev.pl||0,prev.pr||0));prev.minor=sc.minor;prev.major=sc.major;prev.win=sc.win;prev.label=sc.label;}
