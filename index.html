@@ -437,21 +437,29 @@ function draw(){
   }
 }
 function easeOutCubic(x){return 1-Math.pow(1-x,3);}
-/* makas emojisini kesim ucunda, yönü kesim doğrultusunda, hafif "şıkır" sallanmayla çizer */
+/* vektör makas: iki bıçak ileri, iki kol + halka geri; animMs ile açılıp kapanır (şıkır) */
 function drawScissors(x,y,ang){
-  const wob=Math.sin(animMs*0.045)*0.20;
+  const open=0.05+(Math.sin(animMs*0.03)*0.5+0.5)*0.30; /* bıçak yarı açısı */
+  const blade=size*0.09, arm=size*0.062, ring=size*0.022;
+  const ink=cssVar('--ink'), acc=cssVar('--accent');
   ctx.save();
-  ctx.translate(x,y);
-  ctx.rotate(ang-Math.PI/2+wob); /* emoji bıçakları aşağı bakar → kesim yönüne çevir */
-  ctx.font=Math.round(size*0.13)+'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",serif';
-  ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillText("✂️",0,0);
+  ctx.translate(x,y);ctx.rotate(ang);
+  ctx.lineCap="round";ctx.lineJoin="round";ctx.lineWidth=Math.max(2,size*0.011);
+  for(const sgn of [1,-1]){
+    const ca=Math.cos(sgn*open),sa=Math.sin(sgn*open);
+    ctx.strokeStyle=ink;
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(ca*blade,sa*blade);ctx.stroke();       /* bıçak (ileri) */
+    ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-ca*arm,-sa*arm);ctx.stroke();          /* kol (geri) */
+    ctx.strokeStyle=acc;
+    ctx.beginPath();ctx.arc(-ca*(arm+ring),-sa*(arm+ring),ring,0,Math.PI*2);ctx.stroke();/* halka */
+  }
+  ctx.fillStyle=acc;ctx.beginPath();ctx.arc(0,0,Math.max(1.8,size*0.007),0,Math.PI*2);ctx.fill();/* vida */
   ctx.restore();
 }
 /* önce MAKAS şekli keser (cutT), sonra parçalar ayrılır (sepT) */
 function animateCut(){
   if(sepRAF)cancelAnimationFrame(sepRAF);
-  const CUT=680,SEP=430,t0=(performance&&performance.now)?performance.now():Date.now();
+  const CUT=360,SEP=340,t0=(performance&&performance.now)?performance.now():Date.now();
   function frame(now){
     const e=animMs=((now||Date.now())-t0);
     if(e<CUT){cutT=e/CUT;sepT=0;draw();sepRAF=requestAnimationFrame(frame);}
