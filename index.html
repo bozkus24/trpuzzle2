@@ -515,7 +515,8 @@ function play(){
    50:50, 51:49, 52:48, 53:47, 54:46, 55:45 — daha kötüsü (56:44 ve ötesi) kayıp. */
 const WIN_LABELS={50:"Mükemmel! 50:50",49:"Kusursuza yakın",48:"Çok iyi",47:"İyi",46:"Fena değil",45:"Ucu ucuna!"};
 function scoreOf(minPct){
-  const minor=Math.max(0,Math.min(50,Math.round(minPct)));
+  /* yarımı yukarı yuvarla (49.5→50, 48.5→49 ... 44.5→45); epsilon ile .5 sınırı garanti */
+  const minor=Math.max(0,Math.min(50,Math.round(minPct+1e-9)));
   const major=100-minor;
   const win=minor>=45;
   return {minor,major,win,label:win?WIN_LABELS[minor]:"Kaybettin"};
