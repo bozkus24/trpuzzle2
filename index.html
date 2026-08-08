@@ -200,8 +200,13 @@
     .topbar-inner{padding:11px 10px; column-gap:6px;}
     .iconbtn{padding:7px 3px;}
     .iconbtn svg{width:18px; height:18px;}
-    .brand-logo{height:28px;}
+    .brand-logo{height:36px;}
     .seg-btn{padding:8px 16px; font-size:12px;}
+    /* mobilde iki satır: üstte segment (ortalı), altta sayaç (sol) + tema/palet (sağ) — bindirme yok */
+    .statusbar{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; row-gap:8px; padding:0 12px;}
+    .sb-center{order:-1; flex:1 0 100%; display:flex; justify-content:center;}
+    .sb-left{flex:0 1 auto;}
+    .sb-right{flex:0 1 auto;}
   }
 </style>
 </head>
