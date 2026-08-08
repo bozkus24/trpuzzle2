@@ -92,7 +92,8 @@
     background:var(--pill); border:1px solid var(--line); border-radius:8px;
     padding:6px 12px; font-size:12.5px; color:var(--muted);
   }
-  .score b{color:var(--c3);}
+  .score b{color:var(--c3); margin-left:5px;}
+  #streakPill b{color:var(--c1);}
   .wheel{width:18px; height:18px; border-radius:50%;
     background:conic-gradient(var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));}
 
@@ -216,7 +217,8 @@
   </div>
 
   <div class="scorerow">
-    <span class="score" id="scorePill" style="display:none;">Skor(<b id="scoreVal">—</b>)</span>
+    <span class="score" id="streakPill" style="display:none;">🔥 Seri <b id="streakVal">0</b></span>
+    <span class="score" id="scorePill" style="display:none;">Skor <b id="scoreVal">—</b></span>
     <span class="wheel"></span>
   </div>
 
@@ -250,9 +252,9 @@
     <ul>
       <li>Bir noktaya <b>basılı tut</b>, sürükle ve başka bir noktada <b>bırak</b> — çizgi tam olarak <b>başladığın noktadan bıraktığın noktaya</b> çizilir.</li>
       <li>Çizgi şekli <b>bir kenarından girip öbür kenarından çıkmalı</b>; şekli baştan başa geçmeyen çizgi sayılmaz, tekrar denersin.</li>
-      <li>Geçerli kesimde skor kilitlenir: <b>%100</b> = kusursuz 50:50, <b>%96+</b> = kazandın.</li>
-      <li><b>günlük</b> modda günde tek hak — yeni şekil her gün 00:00 UTC'de.</li>
-      <li><b>antrenman</b> modunda sınırsız denersin; günlük skorun etkilenmez.</li>
+      <li>Sonuç, iki parçanın oranıdır. <b>Kazanç kademeleri:</b> 50:50, 51:49, 52:48, 53:47, 54:46, <b>55:45</b>. Daha dengesizi (56:44 ve ötesi) kayıptır.</li>
+      <li><b>günlük</b> modda günde tek hak — yeni şekil her gün 00:00 UTC'de. Üst üste kazandığın günler <b>🔥 seriyi</b> büyütür; bir gün kaybedince seri sıfırlanır.</li>
+      <li><b>antrenman</b> modunda sınırsız denersin; günlük seri/skor etkilenmez.</li>
     </ul>
     <p class="muted">Sol üstteki palet düğmesiyle vurgu rengini değiştirebilirsin.</p>
   </div>
@@ -266,10 +268,10 @@
     <div class="statgrid">
       <div class="stat"><div class="n" id="stPlayed">0</div><div class="t">OYNANAN</div></div>
       <div class="stat"><div class="n" id="stWin">0%</div><div class="t">KAZANMA</div></div>
-      <div class="stat"><div class="n" id="stStreak">0</div><div class="t">SERİ</div></div>
+      <div class="stat"><div class="n" id="stStreak">0</div><div class="t">GÜNLÜK SERİ</div></div>
       <div class="stat"><div class="n" id="stBest">—</div><div class="t">EN İYİ</div></div>
     </div>
-    <p class="muted">En iyi = bugüne kadarki en yüksek skor (%100 = tam 50:50).</p>
+    <p class="muted">Günlük seri = üst üste kazandığın gün sayısı. En iyi = en dengeli kesimin oranı (50:50 en iyisidir).</p>
   </div>
 </div>
 
@@ -489,21 +491,22 @@ function play(){
     startRound(POOL[hashStr(roundDate)%POOL.length]);
   }else startRound(pickRandom());
 }
-function perfectPct(minPct){return Math.max(0,Math.round(minPct*2));}
-function verdict(pf){
-  if(pf>=99)return{t:"Mükemmel!",w:true};
-  if(pf>=96)return{t:"Harika",w:true};
-  if(pf>=90)return{t:"İyi",w:false};
-  if(pf>=80)return{t:"Fena değil",w:false};
-  return{t:"Olmadı",w:false};
+/* Skor: kişi tam ortadan bölmeye çalışır. Azınlık taraf yüzdesine göre 6 kazanç kademesi:
+   50:50, 51:49, 52:48, 53:47, 54:46, 55:45 — daha kötüsü (56:44 ve ötesi) kayıp. */
+const WIN_LABELS={50:"Mükemmel! 50:50",49:"Kusursuza yakın",48:"Çok iyi",47:"İyi",46:"Fena değil",45:"Ucu ucuna!"};
+function scoreOf(minPct){
+  const minor=Math.max(0,Math.min(50,Math.round(minPct)));
+  const major=100-minor;
+  const win=minor>=45;
+  return {minor,major,win,label:win?WIN_LABELS[minor]:"Kaybettin"};
 }
 function finalize(a,b){
   const N=[-(b[1]-a[1]),b[0]-a[0]];
   const total=polyArea(scaled),aL=polyArea(clipHalf(scaled,a,N)),aR=Math.max(0,total-aL);
   const minPct=total>0?Math.min(aL,aR)/total*100:0;
-  const pl=Math.max(0,Math.min(100,Math.round(aL/total*100))),pr=100-pl;
+  const sc=scoreOf(minPct);
   cut={A:[a[0],a[1]],N:N,p1:[a[0],a[1]],p2:[b[0],b[1]]};
-  const rec={minPct,pl,pr,name:shape.n,pf:perfectPct(minPct),
+  const rec={minPct,minor:sc.minor,major:sc.major,win:sc.win,label:sc.label,name:shape.n,
     date:(mode==="daily"&&roundDate)?roundDate:todayUTC(),
     cut:[a[0]/size,a[1]/size,b[0]/size,b[1]/size]};
   if(mode==="daily"){saveDaily(rec);updateStats(rec);}
@@ -511,13 +514,15 @@ function finalize(a,b){
 }
 function showDone(rec,restored){
   state="done";board.classList.remove("playing");board.classList.add("done");
-  const v=verdict(rec.pf);
-  tagline.innerHTML='<span class="pct">%'+rec.pf+'</span><br>'+
-    '<span class="'+(v.w?'win':'lose')+'">'+v.t+'</span>'+
-    '<span class="sub">'+rec.pl+':'+rec.pr+' · '+rec.name+(restored?' · bugünkü hakkını kullandın':'')+'</span>';
+  let streakStr="";
+  if(mode==="daily"){const st=getStats().streak||0;if(st>0)streakStr=' · 🔥 Seri '+st;}
+  tagline.innerHTML='<span class="pct">'+rec.major+' : '+rec.minor+'</span><br>'+
+    '<span class="'+(rec.win?'win':'lose')+'">'+rec.label+'</span>'+
+    '<span class="sub">'+rec.name+streakStr+(restored?' · bugün oynandı':'')+'</span>';
   const sp=document.getElementById("scorePill");
   sp.style.display="inline-flex";
-  document.getElementById("scoreVal").textContent='%'+rec.pf;
+  document.getElementById("scoreVal").textContent=rec.major+':'+rec.minor;
+  refreshStreakPill();
   actions.classList.remove("hide");
   document.getElementById("btnAgain").textContent = mode==="daily" ? "↻ ANTRENMAN" : "↻ YENİDEN";
   window._last=rec;
@@ -525,6 +530,7 @@ function showDone(rec,restored){
   else{sepT=0;animateSeparation();}  /* taze kesim: parçalar ayrılsın */
 }
 function restoreDaily(prev){
+  if(prev&&prev.minor===undefined){const sc=scoreOf(prev.minPct!=null?prev.minPct:Math.min(prev.pl||0,prev.pr||0));prev.minor=sc.minor;prev.major=sc.major;prev.win=sc.win;prev.label=sc.label;}
   roundDate=prev.date||todayUTC();
   shape=POOL[hashStr(roundDate)%POOL.length];fitShape();
   window._last=prev;
@@ -546,6 +552,7 @@ document.getElementById("mode").addEventListener("change",function(){
     if(prev)restoreDaily(prev);
     else{tagline.textContent="Şekli tam ortadan ikiye böl!";draw();}
   }else{tagline.innerHTML='Antrenman modu<span class="sub">▶ ile sınırsız şekil — günlük skorun etkilenmez</span>';draw();}
+  refreshStreakPill();
 });
 document.getElementById("btnArchive").addEventListener("click",function(){
   mode="practice";document.getElementById("mode").value="practice";startRound(pickRandom());
@@ -558,11 +565,12 @@ function getStats(){try{return JSON.parse(localStorage.getItem("kesme2-stats"))|
 function updateStats(rec){
   const s=getStats(),d=rec.date;if(s.lastDate===d)return;
   s.played=(s.played||0)+1;
-  const win=rec.pf>=96; /* ekranda gösterilen skorla aynı eşik */
+  const win=rec.win; /* 55:45 ve daha iyisi */
   if(win)s.wins=(s.wins||0)+1;
   const y=new Date(Date.parse(d+"T00:00:00Z")-864e5).toISOString().slice(0,10);
   if(win){s.streak=(s.lastWinDate===y?(s.streak||0):0)+1;s.lastWinDate=d;}else s.streak=0;
-  s.best=Math.max(s.best||0,rec.pf);s.lastDate=d;
+  s.maxStreak=Math.max(s.maxStreak||0,s.streak||0);
+  s.best=Math.max(s.best||0,rec.minor);s.lastDate=d; /* en yüksek azınlık = en dengeli */
   try{localStorage.setItem("kesme2-stats",JSON.stringify(s));}catch(e){}
 }
 function renderStats(){
@@ -570,20 +578,29 @@ function renderStats(){
   document.getElementById("stPlayed").textContent=s.played||0;
   document.getElementById("stWin").textContent=(s.played?Math.round((s.wins||0)/s.played*100):0)+"%";
   document.getElementById("stStreak").textContent=s.streak||0;
-  document.getElementById("stBest").textContent=s.best?("%"+s.best):"—";
+  document.getElementById("stBest").textContent=s.best?((100-s.best)+":"+s.best):"—";
+}
+/* günlük seriyi ekranda göster (yalnız günlük modda) */
+function refreshStreakPill(){
+  const pill=document.getElementById("streakPill");
+  if(mode!=="daily"){pill.style.display="none";return;}
+  const st=getStats().streak||0;
+  document.getElementById("streakVal").textContent=st;
+  pill.style.display=st>0?"inline-flex":"none";
 }
 
 /* ---------- paylaş ---------- */
-/* 5 dolu kare yalnız kazanınca (pf>=96) — kayıp %90-95, %100 ile karışmasın */
-function emojiBar(pf){
-  if(pf>=96)return "🟩🟩🟩🟩🟩";
-  const f=Math.max(0,Math.min(4,Math.floor(pf/20)));
-  return "🟩".repeat(f)+"⬛".repeat(5-f);
+/* kazançta azınlığa göre dolu kare (45→1 ... 50→6); kayıpta ❌ */
+function scoreBar(rec){
+  if(!rec.win)return "⬛⬛⬛⬛⬛⬛ ❌";
+  const f=rec.minor-44; /* 1..6 */
+  return "🟩".repeat(f)+"⬛".repeat(6-f);
 }
 document.getElementById("btnShare").addEventListener("click",function(){
   const r=window._last;if(!r)return;
   const head=(mode==="daily")?("KESME "+(r.date||todayUTC())):"KESME (antrenman)";
-  const txt=head+"\n"+r.name+" · "+r.pl+":"+r.pr+" · %"+r.pf+" "+(r.pf>=96?"✅":"❌")+"\n"+emojiBar(r.pf);
+  const st=(mode==="daily")?(getStats().streak||0):0;
+  const txt=head+"\n"+r.name+" · "+r.major+":"+r.minor+" "+(r.win?"✅":"❌")+"\n"+scoreBar(r)+(st>0?("\n🔥 Seri: "+st):"");
   if(navigator.share)navigator.share({text:txt}).catch(()=>copy(txt));else copy(txt);
 });
 function copiedFeedback(){
@@ -672,6 +689,7 @@ function cdTick(){
   resize();
   const prev=loadDaily();
   if(prev)restoreDaily(prev);
+  refreshStreakPill(); /* günlük seri açılışta görünsün */
   cdTick();setInterval(cdTick,1000);
 })();
 window.addEventListener("resize",resize);
