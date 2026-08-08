@@ -41,9 +41,13 @@
     -webkit-font-smoothing:antialiased; transition:background .25s, color .25s;
   }
 
-  /* ------- top bar ------- */
+  /* ------- top bar (en üstte sabit) ------- */
   .topbar{
-    width:100%; max-width:980px; padding:18px 22px 0;
+    position:sticky; top:0; z-index:20; width:100%;
+    background:var(--pill); border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:560px; margin:0 auto; padding:12px 18px;
     display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center;
   }
   .tb-left{justify-self:start; display:flex; gap:2px;} .tb-right{justify-self:end; display:flex; gap:2px;}
@@ -185,7 +189,7 @@
 
   @media(max-width:560px){
     .wordmark{font-size:26px; letter-spacing:3px;}
-    .topbar{padding:14px 10px 0;}
+    .topbar-inner{padding:12px 10px;}
     .iconbtn{padding:8px 5px;}
     .seg-btn{padding:8px 16px; font-size:12px;}
   }
@@ -193,7 +197,8 @@
 </head>
 <body>
 
-<div class="topbar">
+<header class="topbar">
+ <div class="topbar-inner">
   <div class="tb-left">
     <button class="iconbtn" id="btnTheme" title="Aydınlık / karanlık mod">
       <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
@@ -215,7 +220,8 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.3 9.2a2.7 2.7 0 1 1 3.5 2.6c-.7.3-1.3.9-1.3 1.7v.5"/><circle cx="11.9" cy="17.3" r="0.5" fill="currentColor"/></svg>
     </button>
   </div>
-</div>
+ </div>
+</header>
 
 <button id="devReset" style="display:none; position:fixed; left:10px; bottom:10px; z-index:40; font-family:inherit; font-size:12px; font-weight:700; padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:var(--pill); color:var(--ink); cursor:pointer;">🔄 Günlüğü sıfırla</button>
 
