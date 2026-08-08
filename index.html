@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="color-scheme" content="dark light">
+<meta name="color-scheme" content="light dark">
 <title>KESME — Günlük Şekil Kesme Bulmacası</title>
 <meta name="description" content="Her gün gelen şekli tek çizgiyle tam ortadan ikiye böl.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
@@ -702,9 +702,7 @@ function cdTick(){
 (function init(){
   /* tema: kayıtlı yoksa cihaz tercihine göre başla, sonra siyah/beyaz */
   let savedTheme=null;try{savedTheme=localStorage.getItem('kesme-theme');}catch(e){}
-  if(savedTheme!=='light'&&savedTheme!=='dark'){
-    savedTheme=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
-  }
+  if(savedTheme!=='light'&&savedTheme!=='dark')savedTheme='light'; /* varsayılan: aydınlık */
   document.documentElement.setAttribute('data-theme',savedTheme);
   /* vurgu rengi: yalnız güncel paletteki bir değerse geri yükle (eski turuncu tercihini yok say) */
   let savedAcc=null;try{savedAcc=localStorage.getItem('kesme-accent');}catch(e){}
