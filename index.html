@@ -388,6 +388,9 @@ function validSegmentCut(pts,a,b){
   return mn>=-1e-6&&mx<=1+1e-6;
 }
 
+/* ====== TEST BAYRAĞI: günlük modu sınırsız oyna (yayına almadan önce false yap) ====== */
+const DAILY_UNLIMITED=true;
+
 /* ---------- durum ---------- */
 const board=document.getElementById("board"),cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 const tagline=document.getElementById("tagline"),actions=document.getElementById("actions");
@@ -531,7 +534,7 @@ function invalidCut(){
 }
 function play(){
   if(mode==="daily"){
-    const prev=loadDaily();
+    const prev=DAILY_UNLIMITED?null:loadDaily();
     if(prev){restoreDaily(prev);return;}
     roundDate=todayUTC();
     startRound(POOL[hashStr(roundDate)%POOL.length]);
@@ -575,7 +578,7 @@ function showDone(rec,restored){
   document.getElementById("scoreVal").textContent=rec.major+':'+rec.minor;
   refreshStreakPill();
   actions.classList.remove("hide");
-  document.getElementById("btnAgain").textContent = mode==="daily" ? "↻ ANTRENMAN" : "↻ YENİDEN";
+  document.getElementById("btnAgain").textContent = mode==="daily" ? (DAILY_UNLIMITED?"↻ TEKRAR OYNA":"↻ ANTRENMAN") : "↻ YENİDEN";
   window._last=rec;
   if(restored){cutT=1;sepT=1;draw();}    /* kayıtlı sonuç: ayrık göster, animasyon yok */
   else{cutT=0;sepT=0;animateCut();}      /* taze kesim: önce bıçak, sonra ayrılma */
@@ -594,6 +597,7 @@ function restoreDaily(prev){
 
 document.getElementById("play").addEventListener("click",play);
 document.getElementById("btnAgain").addEventListener("click",function(){
+  if(mode==="daily"&&DAILY_UNLIMITED){roundDate=todayUTC();startRound(POOL[hashStr(roundDate)%POOL.length]);return;} /* test: günlüğü yeniden oyna */
   if(mode==="daily")setSeg("practice");
   startRound(pickRandom());
 });
@@ -605,7 +609,7 @@ function selectMode(m){
   setSeg(m);shape=null;cut=null;state="idle";
   board.classList.remove("playing","done");actions.classList.add("hide");hideScore();
   if(mode==="daily"){
-    const prev=loadDaily();
+    const prev=DAILY_UNLIMITED?null:loadDaily();
     if(prev)restoreDaily(prev);
     else{tagline.textContent="Şekli tam ortadan ikiye böl!";draw();}
   }else{tagline.innerHTML='Antrenman modu<span class="sub">▶ ile sınırsız şekil — günlük skorun etkilenmez</span>';draw();}
@@ -621,7 +625,7 @@ function saveDaily(r){try{localStorage.setItem("kesme2-day-"+r.date,JSON.stringi
 function loadDaily(){try{return JSON.parse(localStorage.getItem("kesme2-day-"+todayUTC()));}catch(e){return null;}}
 function getStats(){try{return JSON.parse(localStorage.getItem("kesme2-stats"))||{};}catch(e){return{};}}
 function updateStats(rec){
-  const s=getStats(),d=rec.date;if(s.lastDate===d)return;
+  const s=getStats(),d=rec.date;if(!DAILY_UNLIMITED&&s.lastDate===d)return; /* test modunda her oyun sayılır */
   s.played=(s.played||0)+1;
   const win=rec.win; /* 55:45 ve daha iyisi */
   if(win)s.wins=(s.wins||0)+1;
@@ -800,7 +804,7 @@ function cdTick(){
   markSwatch(validAcc?savedAcc:cssVar('--accent'));
   setSeg(mode); /* segment kontrolünü başlangıç moduyla eşitle */
   resize();
-  const prev=loadDaily();
+  const prev=DAILY_UNLIMITED?null:loadDaily();
   if(prev)restoreDaily(prev);
   refreshStreakPill(); /* günlük seri açılışta görünsün */
   /* geliştirici modu: ?dev ile günlük kilidini sıfırlama butonu */
