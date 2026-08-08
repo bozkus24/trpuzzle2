@@ -90,6 +90,7 @@
   }
   .score b{color:var(--c3); margin-left:5px;}
   #streakPill b{color:var(--c1);}
+  .flame{width:13px; height:13px; vertical-align:-2px; margin-right:3px; color:#f97316; display:inline-block;}
   .wheel{width:18px; height:18px; border-radius:50%;
     background:conic-gradient(var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));}
 
@@ -151,7 +152,7 @@
   .sheet{background:var(--sheet); border:1px solid var(--line); border-radius:16px; max-width:460px; width:100%; padding:26px; max-height:88vh; overflow:auto;}
   .sheet h2{margin:0 0 16px; font-size:19px; letter-spacing:2px;}
   .sheet h2 span{color:var(--accent);}
-  .sheet p,.sheet li{font-size:13.5px; line-height:1.7; color:#c6d0de;}
+  .sheet p,.sheet li{font-size:13.5px; line-height:1.7; color:var(--ink);}
   .sheet li{margin-bottom:6px;}
   .sheet .muted{color:var(--muted); font-size:12.5px;}
   .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; margin:-10px -8px 0 0;}
@@ -214,7 +215,7 @@
   </div>
 
   <div class="scorerow">
-    <span class="score" id="streakPill" style="display:none;">🔥 Seri <b id="streakVal">0</b></span>
+    <span class="score" id="streakPill" style="display:none;"><svg class="flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z"/></svg>Seri <b id="streakVal">0</b></span>
     <span class="score" id="scorePill" style="display:none;">Skor <b id="scoreVal">—</b></span>
     <span class="wheel"></span>
   </div>
@@ -246,7 +247,7 @@
       <li>Bir noktaya <b>basılı tut</b>, sürükle ve başka bir noktada <b>bırak</b> — çizgi tam olarak <b>başladığın noktadan bıraktığın noktaya</b> çizilir.</li>
       <li>Çizgi şekli <b>bir kenarından girip öbür kenarından çıkmalı</b>; şekli baştan başa geçmeyen çizgi sayılmaz, tekrar denersin.</li>
       <li>Sonuç, iki parçanın oranıdır. <b>Kazanç kademeleri:</b> 50:50, 51:49, 52:48, 53:47, 54:46, <b>55:45</b>. Daha dengesizi (56:44 ve ötesi) kayıptır.</li>
-      <li><b>günlük</b> modda günde tek hak — yeni şekil her gün 00:00 UTC'de. Üst üste kazandığın günler <b>🔥 seriyi</b> büyütür; bir gün kaybedince seri sıfırlanır.</li>
+      <li><b>günlük</b> modda günde tek hak — yeni şekil her gün 00:00 UTC'de. Üst üste kazandığın günler <b><svg class="flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z"/></svg>seriyi</b> büyütür; bir gün kaybedince seri sıfırlanır.</li>
       <li><b>antrenman</b> modunda sınırsız denersin; günlük seri/skor etkilenmez.</li>
     </ul>
     <p class="muted">Sol üstteki palet düğmesiyle vurgu rengini değiştirebilirsin.</p>
@@ -533,8 +534,9 @@ function finalize(a,b){
 }
 function showDone(rec,restored){
   state="done";board.classList.remove("playing");board.classList.add("done");
+  const FLAME='<svg class="flame" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12c2 -2.96 0 -7 -1 -8c0 3.038 -1.773 4.741 -3 6c-1.226 1.26 -2 3.24 -2 5a6 6 0 1 0 12 0c0 -1.532 -1.056 -3.94 -2 -5c-1.786 3 -2.791 3 -4 2z"/></svg>';
   const parts=[];
-  if(mode==="daily"){const st=getStats().streak||0;if(st>0)parts.push('🔥 Seri '+st);}
+  if(mode==="daily"){const st=getStats().streak||0;if(st>0)parts.push(FLAME+'Seri '+st);}
   if(restored)parts.push('bugün oynandı');
   const subHtml=parts.length?('<span class="sub">'+parts.join(' · ')+'</span>'):'';
   tagline.innerHTML='<span class="pct">'+rec.major+' : '+rec.minor+'</span><br>'+
@@ -624,7 +626,7 @@ document.getElementById("btnShare").addEventListener("click",function(){
   const r=window._last;if(!r)return;
   const head=(mode==="daily")?("KESME "+(r.date||todayUTC())):"KESME (antrenman)";
   const st=(mode==="daily")?(getStats().streak||0):0;
-  const txt=head+"\n"+r.major+":"+r.minor+" "+(r.win?"✅":"❌")+"\n"+scoreBar(r)+(st>0?("\n🔥 Seri: "+st):"");
+  const txt=head+"\n"+r.major+":"+r.minor+" "+(r.win?"✅":"❌")+"\n"+scoreBar(r)+(st>0?("\nSeri: "+st):"");
   if(navigator.share)navigator.share({text:txt}).catch(()=>copy(txt));else copy(txt);
 });
 function copiedFeedback(){
