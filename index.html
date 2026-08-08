@@ -202,11 +202,14 @@
     .iconbtn svg{width:18px; height:18px;}
     .brand-logo{height:36px;}
     .seg-btn{padding:8px 16px; font-size:12px;}
-    /* mobilde iki satır: üstte segment (ortalı), altta sayaç (sol) + tema/palet (sağ) — bindirme yok */
-    .statusbar{display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; row-gap:8px; padding:0 12px;}
-    .sb-center{order:-1; flex:1 0 100%; display:flex; justify-content:center;}
-    .sb-left{flex:0 1 auto;}
-    .sb-right{flex:0 1 auto;}
+    /* mobil üst çubuk: [palet | segment | tema] satırı, altında ortalı sayaç satırı */
+    .statusbar{display:grid; grid-template-columns:auto 1fr auto;
+      grid-template-areas:"pal seg th" "info info info"; row-gap:8px; column-gap:6px; padding:0 12px;}
+    .sb-right{display:contents;}                         /* palet & tema doğrudan grid öğesi olsun */
+    #btnPalette{grid-area:pal; justify-self:start;}      /* en sol */
+    #btnTheme{grid-area:th; justify-self:end;}           /* en sağ */
+    .sb-center{grid-area:seg; justify-self:center;}      /* ortada */
+    .sb-left{grid-area:info; justify-self:center; justify-content:center; flex-wrap:wrap;} /* sayaç ortalı, kendi satırında */
   }
 </style>
 </head>
@@ -544,7 +547,7 @@ function startRound(sh){
   if(sepRAF){cancelAnimationFrame(sepRAF);sepRAF=0;}sepT=0;cutT=1;
   shape=sh;fitShape();start=end=cut=null;state="playing";
   board.classList.remove("done");board.classList.add("playing");
-  actions.classList.add("hide");
+  actions.classList.add("hide");updateCdVisibility(); /* oyun sırasında sayaç gizli */
   playingTagline();draw();
 }
 function invalidCut(){
@@ -588,7 +591,7 @@ function finalize(a,b){
   showDone(rec,false);
 }
 function showDone(rec,restored){
-  state="done";board.classList.remove("playing");board.classList.add("done");
+  state="done";board.classList.remove("playing");board.classList.add("done");updateCdVisibility(); /* çözünce sayaç görünür */
   const FLAME='<svg class="flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z"/></svg>';
   const parts=[];
   const st=(mode==="daily"?getStats():getPStats()).streak||0;
@@ -628,8 +631,8 @@ document.getElementById("btnAgain").addEventListener("click",function(){
 function hideScore(){document.getElementById("scorePill").style.display="none";}
 /* segment kontrolü: aktif butonu güncelle (mode değişkenini de set eder) */
 function setSeg(m){mode=m;document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));}
-/* antrenman modunda sayacı gizle */
-function updateCdVisibility(){const el=document.getElementById("cdPill");if(el)el.style.display=(mode==="daily")?"inline-flex":"none";}
+/* sayaç yalnız günlük bulmacayı çözenlere görünür (günlük + sonuç ekranı) */
+function updateCdVisibility(){const el=document.getElementById("cdPill");if(el)el.style.display=(mode==="daily"&&state==="done")?"inline-flex":"none";}
 /* mod seç → doğrudan yeni tur başlat (play butonuna gerek yok) */
 function selectMode(m){
   setSeg(m);cut=null;
