@@ -156,11 +156,23 @@
   .sheet li{margin-bottom:6px;}
   .sheet .muted{color:var(--muted); font-size:12.5px;}
   .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; margin:-10px -8px 0 0;}
-  .result-head{text-align:center; margin:6px 0 18px;}
-  .result-head .rh-ratio{font-size:40px; font-weight:700; letter-spacing:1px; color:var(--ink);}
-  .result-head .rh-label{font-size:15px; font-weight:700; margin-top:2px;}
-  .result-head .rh-label.win{color:var(--c3);} .result-head .rh-label.lose{color:var(--c1);}
-  .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:18px 0 8px;}
+  .result-head{text-align:center; margin:2px 0 6px;}
+  .result-head .rh-ratio{font-size:46px; font-weight:700; letter-spacing:1px; color:var(--ink);}
+  .result-head .rh-ratio .hl{color:var(--accent);}
+  .result-head .rh-ratio .sep{color:var(--muted); margin:0 3px;}
+  .result-head .rh-sub{font-size:12px; color:var(--muted); margin-top:4px; line-height:1.45;}
+  .sec{text-align:center; font-size:14px; font-weight:700; letter-spacing:.5px; margin:16px 0 10px; color:var(--ink);}
+  .statgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:2px 0 4px;}
+  .dist{display:flex; flex-direction:column; gap:6px;}
+  .drow{display:flex; align-items:center; gap:8px;}
+  .drow .dlab{width:22px; text-align:right; font-size:13px; font-weight:700; color:var(--muted); flex:none;}
+  .drow .dtrack{flex:1;}
+  .drow .dbar{height:24px; background:var(--pill); border:1px solid var(--line); border-radius:5px;
+    display:flex; align-items:center; justify-content:flex-end; padding:0 8px; min-width:30px; box-sizing:border-box; transition:width .35s ease;}
+  .drow .dcount{font-size:12px; font-weight:700; color:var(--ink);}
+  .drow.active .dlab{color:var(--accent);}
+  .drow.active .dbar{background:var(--accent); border-color:var(--accent);}
+  .drow.active .dcount{color:#fff;}
   .stat{text-align:center; background:var(--pill); border:1px solid var(--line); border-radius:10px; padding:14px 4px;}
   .stat .n{font-size:21px; font-weight:700; color:var(--c3);}
   .stat .t{font-size:10.5px; color:var(--muted); letter-spacing:.4px; margin-top:4px;}
@@ -262,19 +274,20 @@
 <div class="modal" id="statsModal">
   <div class="sheet">
     <button class="close" data-close>×</button>
-    <h2><span>SONUÇ</span></h2>
     <div class="result-head" id="resultHead" style="display:none;">
       <div class="rh-ratio" id="rhRatio">—</div>
-      <div class="rh-label" id="rhLabel"></div>
+      <div class="rh-sub" id="rhSub"></div>
     </div>
+    <h3 class="sec">İstatistik</h3>
     <div class="statgrid">
-      <div class="stat"><div class="n" id="stPlayed">0</div><div class="t">OYNANAN</div></div>
       <div class="stat"><div class="n" id="stWin">0%</div><div class="t">KAZANMA</div></div>
-      <div class="stat"><div class="n" id="stStreak">0</div><div class="t">GÜNLÜK SERİ</div></div>
-      <div class="stat"><div class="n" id="stBest">—</div><div class="t">EN İYİ</div></div>
+      <div class="stat"><div class="n" id="stPlayed">0</div><div class="t">OYNANAN</div></div>
+      <div class="stat"><div class="n" id="stStreak">0</div><div class="t">SERİ</div></div>
+      <div class="stat"><div class="n" id="stMax">0</div><div class="t">EN UZUN</div></div>
     </div>
-    <p class="muted">Günlük seri = üst üste kazandığın gün sayısı. En iyi = en dengeli kesimin oranı (50:50 en iyisidir).</p>
-    <button class="act primary" id="btnShareModal" style="width:100%; margin-top:8px;">PAYLAŞ</button>
+    <h3 class="sec">Oran Dağılımı</h3>
+    <div class="dist" id="dist"></div>
+    <button class="act primary" id="btnShareModal" style="width:100%; margin-top:16px;">Paylaş</button>
   </div>
 </div>
 
@@ -609,21 +622,38 @@ function updateStats(rec){
   if(win){s.streak=(s.lastWinDate===y?(s.streak||0):0)+1;s.lastWinDate=d;}else s.streak=0;
   s.maxStreak=Math.max(s.maxStreak||0,s.streak||0);
   s.best=Math.max(s.best||0,rec.minor);s.lastDate=d; /* en yüksek azınlık = en dengeli */
+  s.dist=s.dist||{}; const dk=win?rec.minor:'loss'; s.dist[dk]=(s.dist[dk]||0)+1; /* oran dağılımı */
   try{localStorage.setItem("kesme2-stats",JSON.stringify(s));}catch(e){}
+}
+const DAY_MSG=["Türkiye için günlük kesim!","Tam ortayı yakala!","Denge sende!","Makası doğru tut!","Bugün 50:50 var mı?","Bir çizgi, iki eş parça.","Göz kararı ustası ol!"];
+function puzzleNo(dateStr){try{const ep=Date.parse('2025-01-01T00:00:00Z');return Math.floor((Date.parse(dateStr+'T00:00:00Z')-ep)/86400000)+1;}catch(e){return 1;}}
+function renderDist(r){
+  const s=getStats(),d=s.dist||{};
+  const tiers=[50,49,48,47,46,45];
+  let max=1;tiers.forEach(t=>max=Math.max(max,d[t]||0));max=Math.max(max,d.loss||0);
+  const curKey=r?(r.win?r.minor:'loss'):null;
+  const row=(label,key)=>{
+    const c=d[key]||0,w=c>0?Math.max(14,Math.round(c/max*100)):0;
+    return '<div class="drow'+(key===curKey?' active':'')+'"><span class="dlab">'+label+'</span>'+
+      '<div class="dtrack"><div class="dbar" style="width:'+w+'%"><span class="dcount">'+c+'</span></div></div></div>';
+  };
+  document.getElementById('dist').innerHTML=tiers.map(t=>row(t,t)).join('')+row('&lt;','loss');
 }
 function renderStats(){
   const s=getStats();
-  document.getElementById("stPlayed").textContent=s.played||0;
   document.getElementById("stWin").textContent=(s.played?Math.round((s.wins||0)/s.played*100):0)+"%";
+  document.getElementById("stPlayed").textContent=s.played||0;
   document.getElementById("stStreak").textContent=s.streak||0;
-  document.getElementById("stBest").textContent=s.best?((100-s.best)+":"+s.best):"—";
-  /* son sonucu başa yaz (varsa) */
+  document.getElementById("stMax").textContent=s.maxStreak||0;
   const rh=document.getElementById("resultHead"),r=window._last;
   if(r){
-    document.getElementById("rhRatio").textContent=r.major+" : "+r.minor;
-    const lb=document.getElementById("rhLabel");lb.textContent=r.label;lb.className="rh-label "+(r.win?"win":"lose");
+    document.getElementById("rhRatio").innerHTML='<span>'+r.major+'</span><span class="sep">:</span><span class="hl">'+r.minor+'</span>';
+    const sub=document.getElementById("rhSub");
+    if(mode==="daily"&&r.date){const no=puzzleNo(r.date);sub.textContent="Kesme #"+no+" ("+r.date+") · "+DAY_MSG[no%DAY_MSG.length];}
+    else sub.textContent="Antrenman modu";
     rh.style.display="block";
   }else rh.style.display="none";
+  renderDist(r);
 }
 /* günlük seriyi ekranda göster (yalnız günlük modda) */
 function refreshStreakPill(){
