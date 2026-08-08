@@ -237,10 +237,6 @@
   </div>
 </main>
 
-<footer>
-  <a href="https://cutle.org/" target="_blank" rel="noopener">Cutle</a> örnek alınarak Türkiye için uyarlandı.
-</footer>
-
 <!-- HELP -->
 <div class="modal" id="helpModal">
   <div class="sheet">
@@ -293,7 +289,10 @@ function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt
 /* ---------- şekil üreticileri ---------- */
 function regular(n,rot,r){r=r||0.44;rot=rot||0;const p=[];for(let i=0;i<n;i++){const a=rot+i/n*Math.PI*2;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
 function starShape(n,ro,ri,rot){rot=rot||-Math.PI/2;const p=[];for(let i=0;i<n*2;i++){const r=i%2?ri:ro;const a=rot+i/(n*2)*Math.PI*2;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
-function blob(seed,n){n=n||14;const rng=mulberry32(seed);const p=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const r=0.24+rng()*0.22;p.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return p;}
+/* kapalı Catmull-Rom eğrisi: kontrol noktalarından akışkan, yüksek çözünürlüklü poligon üretir */
+function smoothClosed(ctrl,seg){seg=seg||10;const n=ctrl.length,out=[];for(let i=0;i<n;i++){const p0=ctrl[(i-1+n)%n],p1=ctrl[i],p2=ctrl[(i+1)%n],p3=ctrl[(i+2)%n];for(let s=0;s<seg;s++){const t=s/seg,t2=t*t,t3=t2*t;out.push([0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)]);}}return out;}
+/* organik blob: rastgele kontrol noktaları → akışkan eğri */
+function blob(seed,n){n=n||9;const rng=mulberry32(seed);const ctrl=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const r=0.26+rng()*0.20;ctrl.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return smoothClosed(ctrl,12);}
 
 const TR={
   turkiye:[[0.04,0.55],[0.14,0.46],[0.22,0.49],[0.28,0.43],[0.34,0.47],[0.42,0.41],[0.54,0.43],[0.64,0.39],[0.76,0.43],[0.88,0.41],[0.96,0.49],[0.92,0.60],[0.83,0.63],[0.80,0.73],[0.71,0.68],[0.61,0.72],[0.50,0.66],[0.40,0.70],[0.30,0.66],[0.20,0.71],[0.10,0.64]],
@@ -322,12 +321,12 @@ const POOL=[
   {n:"T şekli",p:[[0.14,0.14],[0.86,0.14],[0.86,0.40],[0.63,0.40],[0.63,0.88],[0.37,0.88],[0.37,0.40],[0.14,0.40]]},
   {n:"Ok",p:[[0.10,0.36],[0.55,0.36],[0.55,0.18],[0.92,0.50],[0.55,0.82],[0.55,0.64],[0.10,0.64]]},
   {n:"Şeref köşesi",p:[[0.14,0.20],[0.50,0.42],[0.86,0.20],[0.86,0.50],[0.50,0.80],[0.14,0.50]]},
-  {n:"Damla",p:blob(101,16)},
-  {n:"Serbest form",p:blob(202,15)},
-  {n:"Amip",p:blob(303,18)},
-  {n:"Taş",p:blob(404,13)},
-  {n:"Bulut",p:blob(505,17)},
-  {n:"Ada",p:blob(606,14)},
+  {n:"Damla",p:blob(101,7)},
+  {n:"Serbest form",p:blob(202,9)},
+  {n:"Amip",p:blob(303,8)},
+  {n:"Taş",p:blob(404,6)},
+  {n:"Bulut",p:blob(505,9)},
+  {n:"Ada",p:blob(606,7)},
   {n:"Türkiye haritası",p:TR.turkiye},
   {n:"Hilal",p:TR.hilal},
   {n:"Çay bardağı",p:TR.cay},
