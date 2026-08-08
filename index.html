@@ -366,7 +366,7 @@ const board=document.getElementById("board"),cv=document.getElementById("cv"),ct
 const tagline=document.getElementById("tagline"),actions=document.getElementById("actions");
 let dpr=1,size=300,shape=null,scaled=[],start=null,end=null,cut=null,state="idle",mode="daily",warnTimer=null;
 let roundDate=null; /* günlük turun ait olduğu UTC günü — gece yarısını ortalayan turlar başladığı güne yazılır */
-let sepT=0,cutT=1,sepRAF=0; /* cutT: bıçağın ilerlemesi, sepT: parçaların ayrılması (0..1) */
+let sepT=0,cutT=1,sepRAF=0,animMs=0; /* cutT: makasın ilerlemesi, sepT: parçaların ayrılması (0..1) */
 
 function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
 function todayUTC(){return new Date().toISOString().slice(0,10);}
@@ -414,15 +414,14 @@ function draw(){
   if(state==="idle"||!shape)return;
   if(state==="done"&&cut){
     if(cutT<1){
-      /* KESME fazı: bütün şekil dururken parlak bıçak p1'den p2'ye ilerler */
+      /* KESME fazı: bütün şekil dururken MAKAS kesim çizgisi boyunca ilerler, arkasında kesik izi bırakır */
       fillShape(scaled,cssVar('--c2'));
-      const tip=[cut.p1[0]+(cut.p2[0]-cut.p1[0])*cutT, cut.p1[1]+(cut.p2[1]-cut.p1[1])*cutT];
+      const tx=cut.p1[0]+(cut.p2[0]-cut.p1[0])*cutT, ty=cut.p1[1]+(cut.p2[1]-cut.p1[1])*cutT;
       ctx.save();
-      ctx.strokeStyle=cssVar('--cutline');ctx.lineCap="round";ctx.lineWidth=Math.max(3,size*0.012);
-      ctx.shadowColor=cssVar('--accent');ctx.shadowBlur=size*0.05;
-      ctx.beginPath();ctx.moveTo(cut.p1[0],cut.p1[1]);ctx.lineTo(tip[0],tip[1]);ctx.stroke();
+      ctx.strokeStyle=cssVar('--cutline');ctx.lineCap="round";ctx.setLineDash([2,6]);ctx.lineWidth=Math.max(2.5,size*0.008);
+      ctx.beginPath();ctx.moveTo(cut.p1[0],cut.p1[1]);ctx.lineTo(tx,ty);ctx.stroke();
       ctx.restore();
-      dot(tip,Math.max(4,size*0.016),cssVar('--accent')); /* parlayan bıçak ucu */
+      drawScissors(tx,ty,Math.atan2(cut.p2[1]-cut.p1[1],cut.p2[0]-cut.p1[0]));
     }else{
       /* AYRILMA fazı: iki parça kesim çizgisine dik uzaklaşır */
       const uN=unit(cut.N),off=sepT*size*0.05;
@@ -438,12 +437,23 @@ function draw(){
   }
 }
 function easeOutCubic(x){return 1-Math.pow(1-x,3);}
-/* önce bıçak şekli keser (cutT), sonra parçalar ayrılır (sepT) */
+/* makas emojisini kesim ucunda, yönü kesim doğrultusunda, hafif "şıkır" sallanmayla çizer */
+function drawScissors(x,y,ang){
+  const wob=Math.sin(animMs*0.045)*0.20;
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(ang-Math.PI/2+wob); /* emoji bıçakları aşağı bakar → kesim yönüne çevir */
+  ctx.font=Math.round(size*0.13)+'px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",serif';
+  ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText("✂️",0,0);
+  ctx.restore();
+}
+/* önce MAKAS şekli keser (cutT), sonra parçalar ayrılır (sepT) */
 function animateCut(){
   if(sepRAF)cancelAnimationFrame(sepRAF);
-  const CUT=260,SEP=470,t0=(performance&&performance.now)?performance.now():Date.now();
+  const CUT=680,SEP=430,t0=(performance&&performance.now)?performance.now():Date.now();
   function frame(now){
-    const e=((now||Date.now())-t0);
+    const e=animMs=((now||Date.now())-t0);
     if(e<CUT){cutT=e/CUT;sepT=0;draw();sepRAF=requestAnimationFrame(frame);}
     else{cutT=1;const k=Math.min(1,(e-CUT)/SEP);sepT=easeOutCubic(k);draw();
       if(k<1)sepRAF=requestAnimationFrame(frame);else sepRAF=0;}
