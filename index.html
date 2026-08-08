@@ -55,7 +55,7 @@
   :root[data-theme="light"] #btnTheme .ic-sun{display:none;}
   :root[data-theme="light"] #btnTheme .ic-moon{display:block;}
   .tb-center{justify-self:center; display:flex; align-items:baseline; gap:16px;}
-  .brand-logo{height:32px; width:auto; max-width:120px; display:block; object-fit:contain; border-radius:6px;}
+  .brand-logo{height:42px; width:auto; max-width:140px; display:block; object-fit:contain;}
   .iconbtn{
     background:none; border:none; padding:8px; border-radius:8px; cursor:pointer;
     color:var(--muted); display:flex; align-items:center; gap:4px; transition:color .15s;
@@ -88,11 +88,15 @@
   }
   .cd svg{width:14px; height:14px;}
   .cd b{color:var(--c3); font-weight:700; letter-spacing:.5px;}
-  .statusbar{display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; width:100%; max-width:560px; margin:0 auto; padding:0 16px;}
+  .statusbar{display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:8px; width:100%; max-width:560px; margin:0 auto; padding:0 18px;}
+  .sb-left{justify-self:start; display:flex; align-items:center; gap:6px; min-width:0; flex-wrap:wrap;}
+  .sb-center{justify-self:center;}
+  .sb-right{justify-self:end; display:flex; align-items:center; gap:6px;}
   .bar-div{display:none;}
-  .statusbar .barbtn{background:var(--pill); border:1px solid var(--line); border-radius:8px; padding:6px; color:var(--muted);}
+  .statusbar .barbtn{background:var(--pill); border:1px solid var(--line); border-radius:8px; padding:6px; color:var(--muted); display:flex; align-items:center; justify-content:center;}
   .statusbar .barbtn:hover{color:var(--ink); border-color:var(--accent);}
   .statusbar .barbtn svg{width:18px; height:18px;}
+  .statusbar .barbtn .pal-dot{width:18px; height:18px;}
   .scorerow{margin-top:0; display:flex; justify-content:center; align-items:center; gap:10px; min-height:30px;}
   .score{
     background:var(--pill); border:1px solid var(--line); border-radius:8px;
@@ -212,7 +216,6 @@
     <div class="wordmark"><span class="w1">KES</span><span class="w2">ME</span></div>
   </div>
   <div class="tb-right">
-    <button class="iconbtn" id="btnPalette" title="Vurgu rengi"><span class="pal-dot"></span><span class="chev">▾</span></button>
     <button class="iconbtn" id="btnStats" title="İstatistik">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V11M12 21V4M19 21v-6"/></svg>
     </button>
@@ -227,21 +230,27 @@
 
 <main>
   <div class="statusbar">
-    <div class="seg" id="modeSeg">
-      <button class="seg-btn" data-mode="daily">Günlük</button>
-      <button class="seg-btn" data-mode="practice">Antrenman</button>
+    <div class="sb-left">
+      <span class="cd" id="cdPill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9.5v3.8l2.6 1.6M9.5 2.5h5"/></svg>
+        <b id="cdTime">--:--:--</b>
+      </span>
+      <span class="score" id="streakPill" style="display:none;"><svg class="flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z"/></svg>Seri <b id="streakVal">0</b></span>
+      <span class="score" id="scorePill" style="display:none;">Skor <b id="scoreVal">—</b></span>
     </div>
-    <span class="bar-div"></span>
-    <span class="cd">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="13" r="8"/><path d="M12 9.5v3.8l2.6 1.6M9.5 2.5h5"/></svg>
-      <b id="cdTime">--:--:--</b>
-    </span>
-    <button class="iconbtn barbtn" id="btnTheme" title="Aydınlık / karanlık mod">
-      <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
-      <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.4 6.4 0 0 0 10.5 10.5z"/></svg>
-    </button>
-    <span class="score" id="streakPill" style="display:none;"><svg class="flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z"/></svg>Seri <b id="streakVal">0</b></span>
-    <span class="score" id="scorePill" style="display:none;">Skor <b id="scoreVal">—</b></span>
+    <div class="sb-center">
+      <div class="seg" id="modeSeg">
+        <button class="seg-btn" data-mode="daily">Günlük</button>
+        <button class="seg-btn" data-mode="practice">Antrenman</button>
+      </div>
+    </div>
+    <div class="sb-right">
+      <button class="iconbtn barbtn" id="btnTheme" title="Aydınlık / karanlık mod">
+        <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+        <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.4 6.4 0 0 0 10.5 10.5z"/></svg>
+      </button>
+      <button class="iconbtn barbtn" id="btnPalette" title="Vurgu rengi"><span class="pal-dot"></span></button>
+    </div>
   </div>
 
   <div class="halo">
@@ -614,15 +623,14 @@ document.getElementById("btnAgain").addEventListener("click",function(){
 function hideScore(){document.getElementById("scorePill").style.display="none";}
 /* segment kontrolü: aktif butonu güncelle (mode değişkenini de set eder) */
 function setSeg(m){mode=m;document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));}
-/* mod seç + ekranı sıfırla */
+/* antrenman modunda sayacı gizle */
+function updateCdVisibility(){const el=document.getElementById("cdPill");if(el)el.style.display=(mode==="daily")?"inline-flex":"none";}
+/* mod seç → doğrudan yeni tur başlat (play butonuna gerek yok) */
 function selectMode(m){
-  setSeg(m);shape=null;cut=null;state="idle";
+  setSeg(m);cut=null;
   board.classList.remove("playing","done");actions.classList.add("hide");hideScore();
-  if(mode==="daily"){
-    const prev=DAILY_UNLIMITED?null:loadDaily();
-    if(prev)restoreDaily(prev);
-    else{tagline.textContent="Şekli tam ortadan ikiye böl!";draw();}
-  }else{tagline.innerHTML='Antrenman modu<span class="sub">▶ ile sınırsız şekil — günlük skorun etkilenmez</span>';draw();}
+  updateCdVisibility();
+  play(); /* şekil doğrudan ekrana gelir (veya çözülmüş günlükte sonucu geri yükler) */
   refreshStreakPill();
 }
 document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.mode!==mode)selectMode(b.dataset.mode);}));
@@ -740,10 +748,11 @@ function resetDailyDev(){
   document.getElementById("statsModal").classList.remove("show");
   if(sepRAF){cancelAnimationFrame(sepRAF);sepRAF=0;}
   setSeg("daily");
-  shape=null;cut=null;cutT=1;sepT=0;state="idle";
+  cut=null;cutT=1;sepT=0;
   board.classList.remove("playing","done");actions.classList.add("hide");hideScore();
-  tagline.textContent="Günlük sıfırlandı — tekrar oynayabilirsin!";
-  refreshStreakPill();draw();
+  updateCdVisibility();
+  play(); /* sıfırla ve doğrudan yeni günlük şekli getir */
+  refreshStreakPill();
 }
 
 /* ---------- vurgu rengi ---------- */
@@ -789,12 +798,10 @@ function cdTick(){
   let s=Math.max(0,Math.floor((next-now.getTime())/1000));
   const h=Math.floor(s/3600);s%=3600;const m=Math.floor(s/60);s%=60;
   document.getElementById("cdTime").textContent=pad2(h)+":"+pad2(m)+":"+pad2(s);
-  /* UTC gün dönümü: sekme açıkken yeni günün şekli oynanabilir olsun */
+  /* UTC gün dönümü: sekme açıkken yeni günün şekli doğrudan gelsin */
   if(mode==="daily"&&state==="done"&&roundDate&&roundDate!==todayUTC()&&!loadDaily()){
-    shape=null;cut=null;window._last=null;state="idle";roundDate=null;
-    board.classList.remove("playing","done");actions.classList.add("hide");hideScore();
-    tagline.textContent="Yeni gün, yeni şekil! ▶ ile başla.";
-    draw();
+    window._last=null;roundDate=null;actions.classList.add("hide");hideScore();
+    play();
   }
 }
 
@@ -811,8 +818,8 @@ function cdTick(){
   markSwatch(validAcc?savedAcc:cssVar('--accent'));
   setSeg(mode); /* segment kontrolünü başlangıç moduyla eşitle */
   resize();
-  const prev=DAILY_UNLIMITED?null:loadDaily();
-  if(prev)restoreDaily(prev);
+  updateCdVisibility();
+  play(); /* açılışta şekil doğrudan gelsin — play butonuna gerek yok (çözülmüş günlükte sonucu geri yükler) */
   refreshStreakPill(); /* günlük seri açılışta görünsün */
   /* geliştirici modu: ?dev ile günlük kilidini sıfırlama butonu */
   if(/[?&]dev\b/.test(location.search)){
