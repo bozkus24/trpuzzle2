@@ -215,6 +215,8 @@
   </div>
 </div>
 
+<button id="devReset" style="display:none; position:fixed; left:10px; bottom:10px; z-index:40; font-family:inherit; font-size:12px; font-weight:700; padding:8px 12px; border-radius:8px; border:1px solid var(--line); background:var(--pill); color:var(--ink); cursor:pointer;">🔄 Günlüğü sıfırla</button>
+
 <main>
   <div class="moderow">
     <div class="seg" id="modeSeg">
@@ -698,6 +700,19 @@ function copy(t,btn){
   }else if(fallbackCopy(t))copiedFeedback(btn);
 }
 
+/* ---------- geliştirici: günlük kilidini sıfırla (?dev) ---------- */
+function resetDailyDev(){
+  try{localStorage.removeItem("kesme2-day-"+todayUTC());}catch(e){}
+  window._last=null;
+  document.getElementById("statsModal").classList.remove("show");
+  if(sepRAF){cancelAnimationFrame(sepRAF);sepRAF=0;}
+  setSeg("daily");
+  shape=null;cut=null;cutT=1;sepT=0;state="idle";
+  board.classList.remove("playing","done");actions.classList.add("hide");hideScore();
+  tagline.textContent="Günlük sıfırlandı — tekrar oynayabilirsin!";
+  refreshStreakPill();draw();
+}
+
 /* ---------- vurgu rengi ---------- */
 const PALETTE=[{n:"Mor",v:"#7c6bf0"},{n:"Lila",v:"#b3a7e8"},{n:"Teal",v:"#33b7c4"},{n:"Gül",v:"#e0679b"}];
 function applyAccent(v){
@@ -765,6 +780,11 @@ function cdTick(){
   const prev=loadDaily();
   if(prev)restoreDaily(prev);
   refreshStreakPill(); /* günlük seri açılışta görünsün */
+  /* geliştirici modu: ?dev ile günlük kilidini sıfırlama butonu */
+  if(/[?&]dev\b/.test(location.search)){
+    const dr=document.getElementById("devReset");
+    dr.style.display="block";dr.addEventListener("click",resetDailyDev);
+  }
   cdTick();setInterval(cdTick,1000);
 })();
 window.addEventListener("resize",resize);
