@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="light dark">
-<title>DİLİMLE — Günlük Şekil Dilimleme Bulmacası</title>
+<title>KESME — Günlük Şekil Kesme Bulmacası</title>
 <meta name="description" content="Her gün gelen şekli tek çizgiyle tam ortadan ikiye böl.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✂️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -218,10 +218,10 @@
 <header class="topbar">
  <div class="topbar-inner">
   <div class="tb-left">
-    <img class="brand-logo" src="logo.png" alt="Dilimle">
+    <img class="brand-logo" src="logo.png" alt="Kesme">
   </div>
   <div class="tb-center">
-    <div class="wordmark"><span class="w1">DİLİM</span><span class="w2">LE</span></div>
+    <div class="wordmark"><span class="w1">KES</span><span class="w2">ME</span></div>
   </div>
   <div class="tb-right">
     <button class="iconbtn" id="btnStats" title="İstatistik">
@@ -699,7 +699,7 @@ function renderStats(){
   if(r){
     document.getElementById("rhRatio").innerHTML='<span>'+r.major+'</span><span class="sep">:</span><span class="hl">'+r.minor+'</span>';
     const sub=document.getElementById("rhSub");
-    if(r.mode==="daily"&&r.date){const no=puzzleNo(r.date);sub.textContent="Dilimle #"+no+" ("+r.date+") · "+DAY_MSG[no%DAY_MSG.length];}
+    if(r.mode==="daily"&&r.date){const no=puzzleNo(r.date);sub.textContent="Kesme #"+no+" ("+r.date+") · "+DAY_MSG[no%DAY_MSG.length];}
     else sub.textContent="Antrenman modu";
     rh.style.display="block";
   }else rh.style.display="none";
@@ -724,7 +724,7 @@ function scoreBar(rec){
 }
 function shareResult(btn){
   const r=window._last;if(!r)return;
-  const head=(mode==="daily")?("DİLİMLE "+(r.date||todayUTC())):"DİLİMLE (antrenman)";
+  const head=(mode==="daily")?("KESME "+(r.date||todayUTC())):"KESME (antrenman)";
   const st=(mode==="daily"?getStats():getPStats()).streak||0;
   const txt=head+"\n"+r.major+":"+r.minor+" "+(r.win?"✅":"❌")+"\n"+scoreBar(r)+(st>0?("\nSeri: "+st):"");
   if(navigator.share)navigator.share({text:txt}).catch(()=>copy(txt,btn));else copy(txt,btn);
