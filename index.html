@@ -190,8 +190,8 @@
   .stat{text-align:center; background:var(--pill); border:1px solid var(--line); border-radius:10px; padding:14px 4px;}
   .stat .n{font-size:21px; font-weight:700; color:var(--c3);}
   .stat .t{font-size:10.5px; color:var(--muted); letter-spacing:.4px; margin-top:4px;}
-  .swatches{display:flex; gap:10px; margin-top:14px;}
-  .swatch{flex:1; height:40px; border-radius:9px; cursor:pointer; border:none; transition:transform .12s;}
+  .swatches{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
+  .swatch{width:44px; height:44px; flex:0 0 auto; border-radius:10px; cursor:pointer; border:none; transition:transform .12s;}
   .swatch:hover{transform:translateY(-2px);}
   .swatch.sel{outline:2.5px solid var(--ink); outline-offset:2.5px;}
 
@@ -764,9 +764,16 @@ function resetDailyDev(){
 }
 
 /* ---------- vurgu rengi ---------- */
-const PALETTE=[{n:"Mor",v:"#7c6bf0"},{n:"Lila",v:"#b3a7e8"},{n:"Teal",v:"#33b7c4"},{n:"Gül",v:"#e0679b"}];
+const PALETTE=[
+  {n:"Mor",v:"#7c6bf0"},{n:"İndigo",v:"#5566e6"},{n:"Mavi",v:"#3b8ee6"},{n:"Teal",v:"#26b3bf"},{n:"Yeşil",v:"#2fb27a"},
+  {n:"Amber",v:"#f0b12e"},{n:"Turuncu",v:"#f2813c"},{n:"Kırmızı",v:"#e5533f"},{n:"Pembe",v:"#e85fa3"},{n:"Lila",v:"#a98fe6"}
+];
 function applyAccent(v){
-  document.documentElement.style.setProperty('--accent',v);
+  const r=document.documentElement.style;
+  r.setProperty('--accent',v);
+  r.setProperty('--c2',v);              /* kesilmemiş şekil = seçilen renk */
+  r.setProperty('--sideA',shade(v,0.12)); /* parça A: açık ton */
+  r.setProperty('--sideB',shade(v,-0.22));/* parça B: koyu ton */
   try{localStorage.setItem('kesme-accent',v);}catch(e){}
   markSwatch(v);draw();
 }
@@ -822,8 +829,7 @@ function cdTick(){
   /* vurgu rengi: yalnız güncel paletteki bir değerse geri yükle (eski turuncu tercihini yok say) */
   let savedAcc=null;try{savedAcc=localStorage.getItem('kesme-accent');}catch(e){}
   const validAcc=PALETTE.some(p=>p.v.toLowerCase()===(savedAcc||'').toLowerCase());
-  if(validAcc)document.documentElement.style.setProperty('--accent',savedAcc);
-  markSwatch(validAcc?savedAcc:cssVar('--accent'));
+  applyAccent(validAcc?savedAcc:PALETTE[0].v); /* accent + şekil renklerini uygula */
   setSeg(mode); /* segment kontrolünü başlangıç moduyla eşitle */
   resize();
   updateCdVisibility();
