@@ -217,9 +217,6 @@
   .arch-shape polygon{fill:currentColor;}
   .arch-dot{position:absolute; top:4px; right:4px; width:7px; height:7px; border-radius:50%; background:var(--muted);}
   .arch-dot.win{background:#16a34a;} .arch-dot.lose{background:#dc2626;}
-  .arch-play-ov{position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(124,107,240,.14); border-radius:8px;}
-  .arch-cell.day:hover .arch-play-ov{display:flex;}
-  .arch-play-ov svg{width:40%; height:40%; color:var(--accent);}
   @media(max-width:560px){
     .arch-shape{width:70%; height:70%;}
     .arch-day{font-size:9px; top:2px; left:3px;}
@@ -735,7 +732,6 @@ function loadArchive(d){try{return JSON.parse(localStorage.getItem("kesme2-arch-
 const ARCH_MONTHS=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
 const ARCH_MIN_Y=2025, ARCH_MIN_M=0; /* en eski gezilebilir ay: Ocak 2025 (bulmaca #1 dönemi) */
 let archY=null, archM=null;           /* görüntülenen ay (UTC yıl / 0-tabanlı ay) */
-const PLAY_TRI='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
 /* polygonu box×box viewBox içine ortalayıp sığdır (fitShape ile aynı mantık) */
 function shapePts(p,box,pad){
   let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
@@ -761,8 +757,7 @@ function renderArchive(){
     const sh=POOL[hashStr(ds)%POOL.length],res=loadArchive(ds),isToday=(ds===today);
     const dot=res?('<span class="arch-dot '+(res.win?'win':'lose')+'"></span>'):'';
     html+='<button class="arch-cell day'+(isToday?' today':'')+'" data-date="'+ds+'"'+(isToday?' data-today="1"':'')+' title="Kesme #'+puzzleNo(ds)+'">'+
-      '<span class="arch-day">'+d+'</span>'+dot+shapeSVG(sh)+
-      '<span class="arch-play-ov">'+PLAY_TRI+'</span></button>';
+      '<span class="arch-day">'+d+'</span>'+dot+shapeSVG(sh)+'</button>';
   }
   grid.innerHTML=html;
   const t=todayUTC().split("-"),cy=+t[0],cm=+t[1]-1;
