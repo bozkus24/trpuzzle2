@@ -195,6 +195,18 @@
   .swatch:hover{transform:translateY(-2px);}
   .swatch.sel{outline:2.5px solid var(--ink); outline-offset:2.5px;}
 
+  .archive-list{display:flex; flex-direction:column; gap:8px; margin-top:14px; max-height:56vh; overflow-y:auto;}
+  .arch-row{display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:10px;
+    width:100%; text-align:left; padding:11px 13px; border-radius:11px;
+    border:1px solid var(--line); background:var(--pill); color:var(--ink);
+    font-family:inherit; cursor:pointer; transition:transform .1s, border-color .12s;}
+  .arch-row:hover{transform:translateY(-1px); border-color:var(--accent);}
+  .arch-no{font-weight:800; letter-spacing:.5px; color:var(--accent); font-size:14px;}
+  .arch-date{color:var(--muted); font-size:12.5px;}
+  .arch-res{font-weight:800; font-size:13px; font-variant-numeric:tabular-nums;}
+  .arch-res.win{color:#16a34a;} .arch-res.lose{color:#dc2626;} .arch-res.todo{color:var(--muted);}
+  .arch-play{font-size:11px; font-weight:800; letter-spacing:.6px; color:var(--accent); opacity:.85;}
+
   @media(max-width:560px){
     .wordmark{font-size:22px; letter-spacing:2px;}
     .topbar-inner{padding:11px 10px; column-gap:6px;}
@@ -224,6 +236,9 @@
     <div class="wordmark"><span class="w1">KES</span><span class="w2">ME</span></div>
   </div>
   <div class="tb-right">
+    <button class="iconbtn" id="btnArchive" title="Arşiv — geçmiş bulmacalar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M8 13h4"/></svg>
+    </button>
     <button class="iconbtn" id="btnStats" title="İstatistik">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V11M12 21V4M19 21v-6"/></svg>
     </button>
@@ -332,6 +347,16 @@
   </div>
 </div>
 
+<!-- ARCHIVE -->
+<div class="modal" id="archiveModal">
+  <div class="sheet">
+    <button class="close" data-close>×</button>
+    <h2>AR<span>ŞİV</span></h2>
+    <p class="muted">Son 10 günün bulmacalarını oyna. Arşiv oyunları günlük seriyi etkilemez.</p>
+    <div class="archive-list" id="archiveList"></div>
+  </div>
+</div>
+
 <script>
 "use strict";
 (function(){
@@ -346,6 +371,8 @@ function starShape(n,ro,ri,rot){rot=rot||-Math.PI/2;const p=[];for(let i=0;i<n*2
 function smoothClosed(ctrl,seg){seg=seg||10;const n=ctrl.length,out=[];for(let i=0;i<n;i++){const p0=ctrl[(i-1+n)%n],p1=ctrl[i],p2=ctrl[(i+1)%n],p3=ctrl[(i+2)%n];for(let s=0;s<seg;s++){const t=s/seg,t2=t*t,t3=t2*t;out.push([0.5*((2*p1[0])+(-p0[0]+p2[0])*t+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3),0.5*((2*p1[1])+(-p0[1]+p2[1])*t+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)]);}}return out;}
 /* organik blob: rastgele kontrol noktaları → akışkan eğri */
 function blob(seed,n){n=n||9;const rng=mulberry32(seed);const ctrl=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;const r=0.26+rng()*0.20;ctrl.push([0.5+r*Math.cos(a),0.5+r*Math.sin(a)]);}return smoothClosed(ctrl,12);}
+/* dişli çark: düz tepeli dişler */
+function gear(teeth,rO,rI){rO=rO||0.47;rI=rI||0.33;const p=[],step=Math.PI*2/teeth,w=step*0.24;for(let i=0;i<teeth;i++){const a=-Math.PI/2+i*step;p.push([0.5+rI*Math.cos(a-w*1.7),0.5+rI*Math.sin(a-w*1.7)]);p.push([0.5+rO*Math.cos(a-w),0.5+rO*Math.sin(a-w)]);p.push([0.5+rO*Math.cos(a+w),0.5+rO*Math.sin(a+w)]);p.push([0.5+rI*Math.cos(a+w*1.7),0.5+rI*Math.sin(a+w*1.7)]);}return p;}
 
 const TR={
   turkiye:[[0.04,0.55],[0.14,0.46],[0.22,0.49],[0.28,0.43],[0.34,0.47],[0.42,0.41],[0.54,0.43],[0.64,0.39],[0.76,0.43],[0.88,0.41],[0.96,0.49],[0.92,0.60],[0.83,0.63],[0.80,0.73],[0.71,0.68],[0.61,0.72],[0.50,0.66],[0.40,0.70],[0.30,0.66],[0.20,0.71],[0.10,0.64]],
@@ -385,7 +412,27 @@ const POOL=[
   {n:"Çay bardağı",p:TR.cay},
   {n:"Lale",p:TR.lale},
   {n:"Cezve",p:TR.cezve},
-  {n:"Yıldız",p:TR.yildiz}
+  {n:"Yıldız",p:TR.yildiz},
+  /* ---- yeni garip şekiller ---- */
+  {n:"Dişli",p:gear(9)},
+  {n:"Küçük dişli",p:gear(12,0.47,0.36)},
+  {n:"Patlama",p:starShape(12,0.48,0.19,-Math.PI/2)},
+  {n:"On iki köşe yıldız",p:starShape(8,0.47,0.20,-Math.PI/2)},
+  {n:"Kalp",p:[[0.50,0.30],[0.42,0.17],[0.28,0.14],[0.16,0.24],[0.14,0.40],[0.22,0.56],[0.50,0.83],[0.78,0.56],[0.86,0.40],[0.84,0.24],[0.72,0.14],[0.58,0.17]]},
+  {n:"Şimşek",p:[[0.58,0.06],[0.30,0.50],[0.48,0.50],[0.40,0.94],[0.72,0.44],[0.53,0.44],[0.64,0.06]]},
+  {n:"Testere",p:[[0.12,0.44],[0.24,0.24],[0.36,0.44],[0.48,0.24],[0.60,0.44],[0.72,0.24],[0.84,0.44],[0.84,0.80],[0.12,0.80]]},
+  {n:"Merdiven",p:[[0.16,0.16],[0.36,0.16],[0.36,0.36],[0.56,0.36],[0.56,0.56],[0.76,0.56],[0.76,0.84],[0.16,0.84]]},
+  {n:"Çift ok",p:[[0.06,0.5],[0.32,0.26],[0.32,0.42],[0.68,0.42],[0.68,0.26],[0.94,0.5],[0.68,0.74],[0.68,0.58],[0.32,0.58],[0.32,0.74]]},
+  {n:"Uçurtma",p:[[0.5,0.07],[0.74,0.38],[0.5,0.93],[0.26,0.38]]},
+  {n:"Konuşma balonu",p:[[0.14,0.16],[0.86,0.16],[0.86,0.60],[0.48,0.60],[0.30,0.84],[0.34,0.60],[0.14,0.60]]},
+  {n:"Damla II",p:[[0.5,0.06],[0.63,0.30],[0.68,0.52],[0.62,0.72],[0.5,0.88],[0.38,0.72],[0.32,0.52],[0.37,0.30]]},
+  {n:"Hilal",p:[[0.575,0.929],[0.472,0.949],[0.366,0.944],[0.265,0.915],[0.174,0.863],[0.097,0.791],[0.039,0.703],[0.002,0.605],[-0.010,0.500],[0.002,0.395],[0.039,0.297],[0.097,0.209],[0.174,0.137],[0.265,0.085],[0.366,0.056],[0.472,0.051],[0.575,0.071],[0.495,0.083],[0.418,0.110],[0.348,0.151],[0.287,0.205],[0.237,0.269],[0.200,0.341],[0.178,0.419],[0.170,0.500],[0.178,0.581],[0.200,0.659],[0.237,0.731],[0.287,0.795],[0.348,0.849],[0.418,0.890],[0.495,0.917]]},
+  {n:"Puzzle parçası",p:[[0.20,0.30],[0.40,0.30],[0.42,0.20],[0.50,0.13],[0.58,0.20],[0.60,0.30],[0.80,0.30],[0.80,0.50],[0.71,0.52],[0.64,0.60],[0.71,0.68],[0.80,0.70],[0.80,0.82],[0.20,0.82]]},
+  {n:"Balta",p:[[0.44,0.10],[0.56,0.10],[0.56,0.40],[0.80,0.30],[0.86,0.46],[0.62,0.56],[0.56,0.56],[0.56,0.90],[0.44,0.90]]},
+  {n:"Çapa",p:[[0.46,0.10],[0.54,0.10],[0.54,0.30],[0.66,0.30],[0.66,0.42],[0.54,0.42],[0.54,0.72],[0.74,0.58],[0.82,0.66],[0.58,0.90],[0.42,0.90],[0.18,0.66],[0.26,0.58],[0.46,0.72],[0.46,0.42],[0.34,0.42],[0.34,0.30],[0.46,0.30]]},
+  {n:"Yaprak",p:[[0.5,0.06],[0.72,0.24],[0.80,0.50],[0.66,0.78],[0.5,0.94],[0.34,0.78],[0.20,0.50],[0.28,0.24]]},
+  {n:"Kristal",p:[[0.5,0.06],[0.72,0.22],[0.66,0.5],[0.78,0.72],[0.5,0.94],[0.22,0.72],[0.34,0.5],[0.28,0.22]]},
+  {n:"Zırh",p:[[0.5,0.08],[0.84,0.22],[0.84,0.52],[0.5,0.92],[0.16,0.52],[0.16,0.22]]}
 ];
 
 /* ---------- geometri ---------- */
@@ -423,6 +470,7 @@ const board=document.getElementById("board"),cv=document.getElementById("cv"),ct
 const tagline=document.getElementById("tagline"),actions=document.getElementById("actions");
 let dpr=1,size=300,shape=null,scaled=[],start=null,end=null,cut=null,state="idle",mode="daily",warnTimer=null;
 let roundDate=null; /* günlük turun ait olduğu UTC günü — gece yarısını ortalayan turlar başladığı güne yazılır */
+let archiveDate=null; /* arşivde oynanan geçmiş günün tarihi (null = arşiv değil) */
 let sepT=0,cutT=1,sepRAF=0,animMs=0; /* cutT: makasın ilerlemesi, sepT: parçaların ayrılması (0..1) */
 
 function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim();}
@@ -560,12 +608,21 @@ function invalidCut(){
   draw();
 }
 function play(){
+  archiveDate=null; /* günlük/antrenman → arşiv değil */
   if(mode==="daily"){
     const prev=DAILY_UNLIMITED?null:loadDaily();
     if(prev){restoreDaily(prev);return;}
     roundDate=todayUTC();
     startRound(POOL[hashStr(roundDate)%POOL.length]);
   }else startRound(pickRandom());
+}
+/* arşiv: geçmiş bir günün deterministik bulmacasını oyna (günlük seriyi etkilemez) */
+function playArchiveDay(ds){
+  document.getElementById("archiveModal").classList.remove("show");
+  mode="archive";archiveDate=ds;roundDate=ds;
+  document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.remove("active"));
+  hideScore();updateCdVisibility();refreshStreakPill();
+  startRound(POOL[hashStr(ds)%POOL.length]);
 }
 /* Skor: kişi tam ortadan bölmeye çalışır. Azınlık taraf yüzdesine göre 6 kazanç kademesi:
    50:50, 51:49, 52:48, 53:47, 54:46, 55:45 — daha kötüsü (56:44 ve ötesi) kayıp. */
@@ -584,9 +641,10 @@ function finalize(a,b){
   const sc=scoreOf(minPct);
   cut={A:[a[0],a[1]],N:N,p1:[a[0],a[1]],p2:[b[0],b[1]]};
   const rec={minPct,minor:sc.minor,major:sc.major,win:sc.win,label:sc.label,name:shape.n,mode:mode,
-    date:(mode==="daily"&&roundDate)?roundDate:todayUTC(),
+    date:(roundDate&&(mode==="daily"||mode==="archive"))?roundDate:todayUTC(),
     cut:[a[0]/size,a[1]/size,b[0]/size,b[1]/size]};
   if(mode==="daily"){saveDaily(rec);updateStats(rec);}
+  else if(mode==="archive")saveArchive(rec); /* arşiv: sadece o güne kaydet, seriyi etkileme */
   else updatePStats(rec); /* antrenman: art arda düzgün kesim serisi */
   showDone(rec,false);
 }
@@ -594,8 +652,8 @@ function showDone(rec,restored){
   state="done";board.classList.remove("playing");board.classList.add("done");updateCdVisibility(); /* çözünce sayaç görünür */
   const FLAME='<svg class="flame" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.963 2.286a.75.75 0 0 0-1.071-.136 9.742 9.742 0 0 0-3.539 6.176 7.547 7.547 0 0 1-1.705-1.715.75.75 0 0 0-1.152-.082A9 9 0 1 0 15.68 4.534a7.46 7.46 0 0 1-2.717-2.248ZM15.75 14.25a3.75 3.75 0 1 1-7.313-1.172c.628.465 1.35.81 2.133 1a5.99 5.99 0 0 1 1.925-3.546 3.75 3.75 0 0 1 3.255 3.718Z"/></svg>';
   const parts=[];
-  const st=(mode==="daily"?getStats():getPStats()).streak||0;
-  if(st>0)parts.push(FLAME+'Seri '+st); /* günlük seri veya art arda düzgün kesim */
+  if(mode==="archive")parts.push('Arşiv #'+puzzleNo(archiveDate||rec.date));
+  else{const st=(mode==="daily"?getStats():getPStats()).streak||0; if(st>0)parts.push(FLAME+'Seri '+st);}
   if(restored)parts.push('bugün oynandı');
   const subHtml=parts.length?('<span class="sub">'+parts.join(' · ')+'</span>'):'';
   tagline.innerHTML='<span class="pct">'+rec.major+' : '+rec.minor+'</span><br>'+
@@ -624,6 +682,7 @@ function restoreDaily(prev){
 
 document.getElementById("play").addEventListener("click",play);
 document.getElementById("btnAgain").addEventListener("click",function(){
+  if(mode==="archive"){startRound(POOL[hashStr(archiveDate)%POOL.length]);return;} /* arşiv: aynı günü tekrar oyna */
   if(mode==="daily"&&DAILY_UNLIMITED){roundDate=todayUTC();startRound(POOL[hashStr(roundDate)%POOL.length]);return;} /* test: günlüğü yeniden oyna */
   if(mode==="daily")setSeg("practice");
   startRound(pickRandom());
@@ -646,6 +705,27 @@ document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.addEventListener("cl
 /* ---------- kayıt ---------- */
 function saveDaily(r){try{localStorage.setItem("kesme2-day-"+r.date,JSON.stringify(r));}catch(e){}}
 function loadDaily(){try{return JSON.parse(localStorage.getItem("kesme2-day-"+todayUTC()));}catch(e){return null;}}
+/* arşiv kaydı: her geçmiş gün için en iyi sonucu sakla (seriyi etkilemez) */
+function saveArchive(r){try{const ex=loadArchive(r.date);if(!ex||(r.minor||0)>(ex.minor||0))localStorage.setItem("kesme2-arch-"+r.date,JSON.stringify(r));}catch(e){}}
+function loadArchive(d){try{return JSON.parse(localStorage.getItem("kesme2-arch-"+d));}catch(e){return null;}}
+/* arşiv listesi: dün → 10 gün öncesi (yeni → eski) */
+function renderArchive(){
+  const list=document.getElementById("archiveList");if(!list)return;
+  const today=Date.parse(todayUTC()+"T00:00:00Z");let html="";
+  for(let i=1;i<=10;i++){
+    const ds=new Date(today-i*86400000).toISOString().slice(0,10);
+    const no=puzzleNo(ds),res=loadArchive(ds);
+    const resHtml=res?('<span class="arch-res '+(res.win?'win':'lose')+'">'+res.major+':'+res.minor+'</span>')
+      :'<span class="arch-res todo">—</span>';
+    html+='<button class="arch-row" data-date="'+ds+'">'+
+      '<span class="arch-no">#'+no+'</span>'+
+      '<span class="arch-date">'+ds+'</span>'+
+      resHtml+
+      '<span class="arch-play">OYNA ›</span></button>';
+  }
+  list.innerHTML=html;
+  list.querySelectorAll(".arch-row").forEach(b=>b.addEventListener("click",()=>playArchiveDay(b.dataset.date)));
+}
 function getStats(){try{return JSON.parse(localStorage.getItem("kesme2-stats"))||{};}catch(e){return{};}}
 function updateStats(rec){
   const s=getStats(),d=rec.date;if(!DAILY_UNLIMITED&&s.lastDate===d)return; /* test modunda her oyun sayılır */
@@ -699,7 +779,8 @@ function renderStats(){
   if(r){
     document.getElementById("rhRatio").innerHTML='<span>'+r.major+'</span><span class="sep">:</span><span class="hl">'+r.minor+'</span>';
     const sub=document.getElementById("rhSub");
-    if(r.mode==="daily"&&r.date){const no=puzzleNo(r.date);sub.textContent="Kesme #"+no+" ("+r.date+") · "+DAY_MSG[no%DAY_MSG.length];}
+    if(r.mode==="archive"&&r.date){const no=puzzleNo(r.date);sub.textContent="Arşiv · Kesme #"+no+" ("+r.date+")";}
+    else if(r.mode==="daily"&&r.date){const no=puzzleNo(r.date);sub.textContent="Kesme #"+no+" ("+r.date+") · "+DAY_MSG[no%DAY_MSG.length];}
     else sub.textContent="Antrenman modu";
     rh.style.display="block";
   }else rh.style.display="none";
@@ -710,7 +791,7 @@ function openStats(view){statsView=(view==="practice"||view==="daily")?view:(mod
 /* günlük seriyi ekranda göster (yalnız günlük modda) */
 function refreshStreakPill(){
   const pill=document.getElementById("streakPill");
-  const st=(mode==="daily"?getStats():getPStats()).streak||0; /* günlük seri veya art arda düzgün kesim */
+  const st=mode==="archive"?0:((mode==="daily"?getStats():getPStats()).streak||0); /* arşivde seri gösterilmez */
   document.getElementById("streakVal").textContent=st;
   pill.style.display=st>0?"inline-flex":"none";
 }
@@ -801,6 +882,7 @@ document.getElementById("btnTheme").onclick=function(){
 function openModal(id){document.getElementById(id).classList.add("show");}
 document.getElementById("btnHelp").onclick=()=>openModal("helpModal");
 document.getElementById("btnStats").onclick=()=>openStats();
+document.getElementById("btnArchive").onclick=()=>{renderArchive();openModal("archiveModal");};
 document.querySelectorAll("#statsSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{statsView=b.dataset.view;renderStats();}));
 document.getElementById("btnPalette").onclick=()=>openModal("palModal");
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest(".modal").classList.remove("show"));
