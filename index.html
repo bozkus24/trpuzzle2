@@ -192,17 +192,39 @@
   .swatch:hover{transform:translateY(-2px);}
   .swatch.sel{outline:2.5px solid var(--ink); outline-offset:2.5px;}
 
-  .archive-list{display:flex; flex-direction:column; gap:8px; margin-top:14px; max-height:56vh; overflow-y:auto;}
-  .arch-row{display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:10px;
-    width:100%; text-align:left; padding:11px 13px; border-radius:11px;
-    border:1px solid var(--line); background:var(--pill); color:var(--ink);
-    font-family:inherit; cursor:pointer; transition:transform .1s, border-color .12s;}
-  .arch-row:hover{transform:translateY(-1px); border-color:var(--accent);}
-  .arch-no{font-weight:800; letter-spacing:.5px; color:var(--accent); font-size:14px;}
-  .arch-date{color:var(--muted); font-size:12.5px;}
-  .arch-res{font-weight:800; font-size:13px; font-variant-numeric:tabular-nums;}
-  .arch-res.win{color:#16a34a;} .arch-res.lose{color:#dc2626;} .arch-res.todo{color:var(--muted);}
-  .arch-play{font-size:11px; font-weight:800; letter-spacing:.6px; color:var(--accent); opacity:.85;}
+  .arch-sheet{max-width:460px;}
+  .arch-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+  .arch-top h2{margin:0;}
+  .arch-nav{display:flex; align-items:center; gap:4px;}
+  .arch-navbtn{background:var(--pill); border:1px solid var(--line); color:var(--ink); border-radius:8px;
+    width:30px; height:30px; font-size:18px; line-height:1; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center;}
+  .arch-navbtn:hover:not(:disabled){border-color:var(--accent); color:var(--accent);}
+  .arch-navbtn:disabled{opacity:.3; cursor:default;}
+  .arch-month{font-size:13px; font-weight:700; min-width:104px; text-align:center; color:var(--ink);}
+  .arch-weekdays{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-bottom:6px;}
+  .arch-weekdays span{text-align:center; font-size:10.5px; font-weight:700; letter-spacing:.4px; color:var(--muted);}
+  .arch-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px;}
+  .arch-cell{position:relative; aspect-ratio:1/1; border-radius:9px; border:1px solid transparent; background:none; padding:0;}
+  .arch-cell.blank{border:none;}
+  .arch-cell.empty{border:1px solid var(--line); opacity:.4;}
+  .arch-cell.day{border:1px solid var(--line); background:var(--pill); cursor:pointer; font-family:inherit;
+    display:flex; align-items:center; justify-content:center; transition:transform .1s, border-color .12s, box-shadow .12s;}
+  .arch-cell.day:hover{transform:translateY(-1px); border-color:var(--accent); box-shadow:0 3px 10px rgba(124,107,240,.18);}
+  .arch-cell.today{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent) inset;}
+  .arch-day{position:absolute; top:3px; left:5px; font-size:9.5px; font-weight:700; color:var(--muted); line-height:1;}
+  .arch-cell.today .arch-day{color:var(--accent);}
+  .arch-shape{width:74%; height:74%; margin-top:5px; color:var(--accent); display:block;}
+  .arch-shape polygon{fill:currentColor;}
+  .arch-dot{position:absolute; top:4px; right:4px; width:7px; height:7px; border-radius:50%; background:var(--muted);}
+  .arch-dot.win{background:#16a34a;} .arch-dot.lose{background:#dc2626;}
+  .arch-play-ov{position:absolute; inset:0; display:none; align-items:center; justify-content:center; background:rgba(124,107,240,.14); border-radius:8px;}
+  .arch-cell.day:hover .arch-play-ov{display:flex;}
+  .arch-play-ov svg{width:40%; height:40%; color:var(--accent);}
+  @media(max-width:560px){
+    .arch-shape{width:70%; height:70%;}
+    .arch-day{font-size:9px; top:2px; left:3px;}
+    .arch-month{min-width:90px; font-size:12px;}
+  }
 
   @media(max-width:560px){
     .wordmark{font-size:22px; letter-spacing:2px;}
@@ -344,11 +366,19 @@
 
 <!-- ARCHIVE -->
 <div class="modal" id="archiveModal">
-  <div class="sheet">
+  <div class="sheet arch-sheet">
     <button class="close" data-close>×</button>
-    <h2>AR<span>ŞİV</span></h2>
-    <p class="muted">Son 10 günün bulmacalarını oyna. Arşiv oyunları günlük seriyi etkilemez.</p>
-    <div class="archive-list" id="archiveList"></div>
+    <div class="arch-top">
+      <h2>AR<span>ŞİV</span></h2>
+      <div class="arch-nav">
+        <button class="arch-navbtn" id="archPrev" title="Önceki ay" aria-label="Önceki ay">‹</button>
+        <span class="arch-month" id="archMonthLbl">—</span>
+        <button class="arch-navbtn" id="archNext" title="Sonraki ay" aria-label="Sonraki ay">›</button>
+      </div>
+    </div>
+    <div class="arch-weekdays"><span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span></div>
+    <div class="arch-grid" id="archiveGrid"></div>
+    <p class="muted" style="margin-top:14px; text-align:center;">Bir güne dokun, o günün bulmacasını oyna. Arşiv oyunları günlük seriyi etkilemez.</p>
   </div>
 </div>
 
@@ -701,22 +731,55 @@ function loadDaily(){try{return JSON.parse(localStorage.getItem("kesme2-day-"+to
 function saveArchive(r){try{const ex=loadArchive(r.date);if(!ex||(r.minor||0)>(ex.minor||0))localStorage.setItem("kesme2-arch-"+r.date,JSON.stringify(r));}catch(e){}}
 function loadArchive(d){try{return JSON.parse(localStorage.getItem("kesme2-arch-"+d));}catch(e){return null;}}
 /* arşiv listesi: dün → 10 gün öncesi (yeni → eski) */
+/* takvim görünümü: her günün kutusunda o güne ait şeklin küçük hali */
+const ARCH_MONTHS=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const ARCH_MIN_Y=2025, ARCH_MIN_M=0; /* en eski gezilebilir ay: Ocak 2025 (bulmaca #1 dönemi) */
+let archY=null, archM=null;           /* görüntülenen ay (UTC yıl / 0-tabanlı ay) */
+const PLAY_TRI='<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+/* polygonu box×box viewBox içine ortalayıp sığdır (fitShape ile aynı mantık) */
+function shapePts(p,box,pad){
+  let mnx=1e9,mny=1e9,mxx=-1e9,mxy=-1e9;
+  p.forEach(pt=>{mnx=Math.min(mnx,pt[0]);mny=Math.min(mny,pt[1]);mxx=Math.max(mxx,pt[0]);mxy=Math.max(mxy,pt[1]);});
+  const w=mxx-mnx,h=mxy-mny,av=box-2*pad,s=av/Math.max(w||1,h||1);
+  const ox=(box-w*s)/2-mnx*s,oy=(box-h*s)/2-mny*s;
+  return p.map(pt=>(pt[0]*s+ox).toFixed(1)+","+(pt[1]*s+oy).toFixed(1)).join(" ");
+}
+function shapeSVG(sh){return '<svg class="arch-shape" viewBox="0 0 100 100" aria-hidden="true"><polygon points="'+shapePts(sh.p,100,16)+'"/></svg>';}
 function renderArchive(){
-  const list=document.getElementById("archiveList");if(!list)return;
-  const today=Date.parse(todayUTC()+"T00:00:00Z");let html="";
-  for(let i=1;i<=10;i++){
-    const ds=new Date(today-i*86400000).toISOString().slice(0,10);
-    const no=puzzleNo(ds),res=loadArchive(ds);
-    const resHtml=res?('<span class="arch-res '+(res.win?'win':'lose')+'">'+res.major+':'+res.minor+'</span>')
-      :'<span class="arch-res todo">—</span>';
-    html+='<button class="arch-row" data-date="'+ds+'">'+
-      '<span class="arch-no">#'+no+'</span>'+
-      '<span class="arch-date">'+ds+'</span>'+
-      resHtml+
-      '<span class="arch-play">OYNA ›</span></button>';
+  const grid=document.getElementById("archiveGrid");if(!grid)return;
+  if(archY===null){const t=todayUTC().split("-");archY=+t[0];archM=+t[1]-1;}
+  document.getElementById("archMonthLbl").textContent=ARCH_MONTHS[archM]+" "+archY;
+  const today=todayUTC(),todayMs=Date.parse(today+"T00:00:00Z");
+  const firstWd=(new Date(Date.UTC(archY,archM,1)).getUTCDay()+6)%7; /* Pzt=0 */
+  const dim=new Date(Date.UTC(archY,archM+1,0)).getUTCDate();
+  let html="";
+  for(let i=0;i<firstWd;i++)html+='<div class="arch-cell blank"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=archY+"-"+String(archM+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    const ms=Date.parse(ds+"T00:00:00Z");
+    if(ms>todayMs){html+='<div class="arch-cell empty"><span class="arch-day">'+d+'</span></div>';continue;}
+    const sh=POOL[hashStr(ds)%POOL.length],res=loadArchive(ds),isToday=(ds===today);
+    const dot=res?('<span class="arch-dot '+(res.win?'win':'lose')+'"></span>'):'';
+    html+='<button class="arch-cell day'+(isToday?' today':'')+'" data-date="'+ds+'"'+(isToday?' data-today="1"':'')+' title="Kesme #'+puzzleNo(ds)+'">'+
+      '<span class="arch-day">'+d+'</span>'+dot+shapeSVG(sh)+
+      '<span class="arch-play-ov">'+PLAY_TRI+'</span></button>';
   }
-  list.innerHTML=html;
-  list.querySelectorAll(".arch-row").forEach(b=>b.addEventListener("click",()=>playArchiveDay(b.dataset.date)));
+  grid.innerHTML=html;
+  const t=todayUTC().split("-"),cy=+t[0],cm=+t[1]-1;
+  document.getElementById("archNext").disabled=(archY>cy||(archY===cy&&archM>=cm));
+  document.getElementById("archPrev").disabled=(archY<ARCH_MIN_Y||(archY===ARCH_MIN_Y&&archM<=ARCH_MIN_M));
+  grid.querySelectorAll(".arch-cell.day").forEach(b=>b.addEventListener("click",()=>{
+    if(b.dataset.today){document.getElementById("archiveModal").classList.remove("show");selectMode("daily");}
+    else playArchiveDay(b.dataset.date);
+  }));
+}
+function archShift(delta){
+  let m=archM+delta,y=archY;
+  if(m<0){m=11;y--;}else if(m>11){m=0;y++;}
+  const t=todayUTC().split("-"),cy=+t[0],cm=+t[1]-1;
+  if(y>cy||(y===cy&&m>cm))return;                         /* geleceğe gitme */
+  if(y<ARCH_MIN_Y||(y===ARCH_MIN_Y&&m<ARCH_MIN_M))return; /* çok geriye gitme */
+  archY=y;archM=m;renderArchive();
 }
 function getStats(){try{return JSON.parse(localStorage.getItem("kesme2-stats"))||{};}catch(e){return{};}}
 function updateStats(rec){
@@ -870,6 +933,8 @@ function openModal(id){document.getElementById(id).classList.add("show");}
 document.getElementById("btnHelp").onclick=()=>openModal("helpModal");
 document.getElementById("btnStats").onclick=()=>openStats();
 document.getElementById("btnArchive").onclick=()=>{renderArchive();openModal("archiveModal");};
+document.getElementById("archPrev").onclick=()=>archShift(-1);
+document.getElementById("archNext").onclick=()=>archShift(1);
 document.querySelectorAll("#statsSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{statsView=b.dataset.view;renderStats();}));
 document.getElementById("btnPalette").onclick=()=>openModal("palModal");
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest(".modal").classList.remove("show"));
