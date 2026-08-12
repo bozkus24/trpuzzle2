@@ -93,10 +93,10 @@
     background:conic-gradient(var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));}
 
   /* ------- stage ------- */
-  main{width:100%; display:flex; flex-direction:column; align-items:center; padding:10px 16px 34px; gap:14px;}
+  main{width:100%; display:flex; flex-direction:column; align-items:center; padding:6px 16px 34px; gap:10px;}
   .halo{
     margin-top:0;
-    width:min(94vw,560px); aspect-ratio:1;
+    width:min(94vw,560px);
     display:flex; align-items:center; justify-content:center;
   }
   .board{
@@ -123,7 +123,7 @@
   .board.playing .play, .board.done .play{display:none;}
 
   /* ------- tagline / result ------- */
-  .tagline{min-height:64px; text-align:center; font-size:16px; letter-spacing:.4px; line-height:1.5; color:var(--ink); padding:0 12px;}
+  .tagline{min-height:52px; text-align:center; font-size:16px; letter-spacing:.4px; line-height:1.5; color:var(--ink); padding:0 12px;}
   .tagline .sub{display:block; font-size:12.5px; color:var(--muted); margin-top:6px;}
   .tagline .pct{font-size:34px; font-weight:700; color:var(--ink); letter-spacing:1px;}
   .tagline .win{color:var(--c3);} .tagline .lose{color:var(--c1);}
