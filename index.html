@@ -160,6 +160,8 @@
   .sheet p,.sheet li{font-size:13.5px; line-height:1.7; color:var(--ink);}
   .sheet li{margin-bottom:6px;}
   .sheet .hint{display:block; margin-top:5px; padding-left:10px; border-left:2px solid var(--line); font-size:12px; color:var(--muted); line-height:1.55;}
+  .hint-dot{display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:middle; margin:0 1px;}
+  .hint-dot.win{background:#16a34a;} .hint-dot.lose{background:#dc2626;}
   .sheet .muted{color:var(--muted); font-size:12.5px;}
   .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; margin:-10px -8px 0 0;}
   .result-head{text-align:center; margin:2px 0 6px;}
@@ -214,6 +216,9 @@
   .arch-shape polygon{fill:currentColor;}
   .arch-dot{position:absolute; top:4px; right:4px; width:7px; height:7px; border-radius:50%; background:var(--muted);}
   .arch-dot.win{background:#16a34a;} .arch-dot.lose{background:#dc2626;}
+  /* renk körü modu: kırmızı-yeşil → mavi-turuncu */
+  :root[data-cvd="on"] .arch-dot.win, :root[data-cvd="on"] .hint-dot.win{background:#2f7ed8;}
+  :root[data-cvd="on"] .arch-dot.lose, :root[data-cvd="on"] .hint-dot.lose{background:#e8820c;}
   @media(max-width:560px){
     .arch-shape{width:70%; height:70%;}
     .arch-day{font-size:9px; top:2px; left:3px;}
@@ -315,7 +320,7 @@
         <span class="hint">Antrenman modu günlük serinizi ve istatistiklerinizi etkilemez; seri ve istatistik bilgileri ayrıca tutulur.</span>
       </li>
       <li><b>Arşiv:</b> Geçmiş günlerin bulmacalarını takvimden seçip oynayabileceğiniz moddur.
-        <span class="hint">Günlük serinizi ve istatistiklerinizi etkilemez.</span>
+        <span class="hint">Günlük serinizi ve istatistiklerinizi etkilemez. Oynanan günler arşive kaydedilir; kazandığınız her oyun için <span class="hint-dot win"></span>, kaybettiğiniz her oyun için <span class="hint-dot lose"></span> gösterilir.</span>
       </li>
     </ul>
   </div>
@@ -360,6 +365,12 @@
     </div>
     <h3 class="sec">Vurgu Rengi</h3>
     <div class="swatches" id="swatches"></div>
+    <h3 class="sec">Renk Körü Modu</h3>
+    <div class="seg seg-wide" id="cvdSeg">
+      <button class="seg-btn" data-cvd-val="off">Kapalı</button>
+      <button class="seg-btn" data-cvd-val="on">Açık</button>
+    </div>
+    <p class="muted" style="margin-top:8px; text-align:center;">Kazanç/kayıp noktaları kırmızı-yeşil yerine mavi-turuncu gösterilir.</p>
   </div>
 </div>
 
@@ -991,6 +1002,14 @@ function applyTheme(t){
   markThemeSeg(t);draw();
 }
 document.querySelectorAll("#themeSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.themeVal)));
+/* renk körü modu */
+function markCvdSeg(v){document.querySelectorAll('#cvdSeg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.cvdVal===v));}
+function applyCvd(v){
+  if(v==="on")document.documentElement.setAttribute('data-cvd','on');else document.documentElement.removeAttribute('data-cvd');
+  try{localStorage.setItem('kesme-cvd',v);}catch(e){}
+  markCvdSeg(v);
+}
+document.querySelectorAll("#cvdSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>applyCvd(b.dataset.cvdVal)));
 
 /* ---------- pencereler ---------- */
 function openModal(id){document.getElementById(id).classList.add("show");}
@@ -1004,6 +1023,7 @@ document.querySelectorAll("#statsSeg .seg-btn").forEach(b=>b.addEventListener("c
 document.getElementById("btnSettings").onclick=()=>{
   const cur=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';
   markThemeSeg(cur); /* açılışta mevcut tema/renk seçili görünsün */
+  markCvdSeg(document.documentElement.getAttribute('data-cvd')==='on'?'on':'off');
   openModal("settingsModal");
 };
 function closeModal(m){m.classList.remove("show");if(m.id==="archiveModal")markSeg(mode);} /* arşiv iptal edilirse segment mevcut moda döner */
@@ -1036,6 +1056,8 @@ function cdTick(){
   let savedAcc=null;try{savedAcc=localStorage.getItem('kesme-accent');}catch(e){}
   const validAcc=PALETTE.some(p=>p.v.toLowerCase()===(savedAcc||'').toLowerCase());
   applyAccent(validAcc?savedAcc:PALETTE[0].v); /* accent + şekil renklerini uygula */
+  let savedCvd=null;try{savedCvd=localStorage.getItem('kesme-cvd');}catch(e){}
+  applyCvd(savedCvd==='on'?'on':'off'); /* renk körü modu */
   setSeg(mode); /* segment kontrolünü başlangıç moduyla eşitle */
   resize();
   updateCdVisibility();
