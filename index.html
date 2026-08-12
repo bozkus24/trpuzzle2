@@ -235,9 +235,6 @@
     <div class="wordmark"><span class="w1">KES</span><span class="w2">ME</span></div>
   </div>
   <div class="tb-right">
-    <button class="iconbtn" id="btnArchive" title="Arşiv — geçmiş bulmacalar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9h16M8 3v4M16 3v4M8 13h4"/></svg>
-    </button>
     <button class="iconbtn" id="btnStats" title="İstatistik">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 21V11M12 21V4M19 21v-6"/></svg>
     </button>
@@ -259,6 +256,7 @@
       <div class="seg" id="modeSeg">
         <button class="seg-btn" data-mode="daily">Günlük</button>
         <button class="seg-btn" data-mode="practice">Antrenman</button>
+        <button class="seg-btn" data-mode="archive">Arşiv</button>
       </div>
     </div>
     <div class="sb-left">
@@ -648,8 +646,7 @@ function play(){
 /* arşiv: geçmiş bir günün deterministik bulmacasını oyna (günlük seriyi etkilemez) */
 function playArchiveDay(ds){
   document.getElementById("archiveModal").classList.remove("show");
-  mode="archive";archiveDate=ds;roundDate=ds;
-  document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.remove("active"));
+  setSeg("archive");archiveDate=ds;roundDate=ds; /* Arşiv segment düğmesi aktif */
   hideScore();updateCdVisibility();refreshStreakPill();
   const prev=loadArchive(ds); /* daha önce oynandıysa çözülmüş halini + skoru göster */
   if(prev){restoreArchive(prev,ds);return;}
@@ -752,7 +749,10 @@ function selectMode(m){
   play(); /* şekil doğrudan ekrana gelir (veya çözülmüş günlükte sonucu geri yükler) */
   refreshStreakPill();
 }
-document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.mode!==mode)selectMode(b.dataset.mode);}));
+document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{
+  if(b.dataset.mode==="archive"){renderArchive();openModal("archiveModal");return;} /* arşiv: takvimi aç */
+  if(b.dataset.mode!==mode)selectMode(b.dataset.mode);
+}));
 
 /* ---------- kayıt ---------- */
 function saveDaily(r){try{localStorage.setItem("kesme2-day-"+r.date,JSON.stringify(r));}catch(e){}}
@@ -965,7 +965,6 @@ document.querySelectorAll("#themeSeg .seg-btn").forEach(b=>b.addEventListener("c
 function openModal(id){document.getElementById(id).classList.add("show");}
 document.getElementById("btnHelp").onclick=()=>openModal("helpModal");
 document.getElementById("btnStats").onclick=()=>openStats();
-document.getElementById("btnArchive").onclick=()=>{renderArchive();openModal("archiveModal");};
 document.getElementById("archPrev").onclick=()=>archShift(-1);
 document.getElementById("archNext").onclick=()=>archShift(1);
 document.querySelectorAll("#statsSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{statsView=b.dataset.view;renderStats();}));
