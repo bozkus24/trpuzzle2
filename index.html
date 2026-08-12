@@ -182,8 +182,9 @@
   .swatch:hover{transform:translateY(-2px);}
   .swatch.sel{outline:2.5px solid var(--ink); outline-offset:2.5px;}
 
-  .arch-sheet{max-width:460px;}
-  .arch-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px;}
+  .arch-sheet{max-width:460px; position:relative;}
+  .arch-sheet .close{position:absolute; top:10px; right:12px; margin:0; z-index:2;} /* köşede, ay navigasyonundan uzak */
+  .arch-top{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; padding-right:30px;}
   .arch-top h2{margin:0;}
   .arch-nav{display:flex; align-items:center; gap:4px;}
   .arch-navbtn{background:var(--pill); border:1px solid var(--line); color:var(--ink); border-radius:8px;
@@ -735,7 +736,9 @@ document.getElementById("btnAgain").addEventListener("click",function(){
 });
 function hideScore(){}
 /* segment kontrolü: aktif butonu güncelle (mode değişkenini de set eder) */
-function setSeg(m){mode=m;document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));}
+function setSeg(m){mode=m;markSeg(m);}
+/* yalnız görsel aktif durumu (mode'u değiştirmez) */
+function markSeg(m){document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));}
 /* sayaç yalnız günlük bulmacayı çözenlere görünür; görünmese de yeri korunur (üstte tutarlı boşluk) */
 /* sayaç yeri yalnız günlükte rezerve edilir (çözünce görünür); arşiv/antrenmanda tamamen toplanır */
 function updateCdVisibility(){const el=document.getElementById("cdPill");if(!el)return;const wrap=el.parentElement;if(mode==="daily"){wrap.style.display="";el.style.visibility=(state==="done")?"visible":"hidden";}else{wrap.style.display="none";}}
@@ -750,7 +753,7 @@ function selectMode(m){
   refreshStreakPill();
 }
 document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{
-  if(b.dataset.mode==="archive"){renderArchive();openModal("archiveModal");return;} /* arşiv: takvimi aç */
+  if(b.dataset.mode==="archive"){markSeg("archive");renderArchive();openModal("archiveModal");return;} /* arşiv: düğmeyi boya + takvimi aç */
   if(b.dataset.mode!==mode)selectMode(b.dataset.mode);
 }));
 
@@ -973,8 +976,9 @@ document.getElementById("btnSettings").onclick=()=>{
   markThemeSeg(cur); /* açılışta mevcut tema/renk seçili görünsün */
   openModal("settingsModal");
 };
-document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest(".modal").classList.remove("show"));
-document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("show");}));
+function closeModal(m){m.classList.remove("show");if(m.id==="archiveModal")markSeg(mode);} /* arşiv iptal edilirse segment mevcut moda döner */
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.closest(".modal")));
+document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModal(m);}));
 
 /* ---------- geri sayım ---------- */
 function pad2(n){return String(n).padStart(2,"0");}
