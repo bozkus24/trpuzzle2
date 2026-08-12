@@ -509,7 +509,7 @@ function resize(){
 
 /* ---------- çizim ---------- */
 function pathPoly(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();}
-function hex2rgb(h){h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)];}
+function hex2rgb(h){h=(h||'').trim();const m=h.match(/rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/i);if(m)return[+m[1],+m[2],+m[3]];h=h.replace('#','');if(h.length===3)h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)];}
 /* amt>0 aydınlat, amt<0 koyulaştır */
 function shade(hex,amt){const c=hex2rgb(hex);const to=amt<0?0:255,t=Math.abs(amt);const m=v=>Math.round(v+(to-v)*t);return'rgb('+m(c[0])+','+m(c[1])+','+m(c[2])+')';}
 function unit(v){const d=Math.hypot(v[0],v[1])||1;return[v[0]/d,v[1]/d];}
