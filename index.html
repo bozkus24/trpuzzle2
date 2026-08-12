@@ -125,7 +125,10 @@
   /* ------- tagline / result ------- */
   .tagline{min-height:52px; margin-top:8px; text-align:center; font-size:16px; letter-spacing:.4px; line-height:1.5; color:var(--ink); padding:0 12px;}
   .tagline .sub{display:block; font-size:12.5px; color:var(--muted); margin-top:6px;}
-  .archbar{font-size:13px; font-weight:700; letter-spacing:.3px; color:var(--accent); text-align:center; margin:-2px 0 2px;}
+  .archbar{display:flex; align-items:center; justify-content:center; gap:12px; font-size:13px; font-weight:700; letter-spacing:.3px; color:var(--accent); margin:-2px 0 2px;}
+  .archnav-btn{background:none; border:none; color:var(--accent); font-size:22px; line-height:1; padding:0 2px; cursor:pointer; font-family:inherit; transition:opacity .12s;}
+  .archnav-btn:hover:not(:disabled){opacity:.7;}
+  .archnav-btn:disabled{opacity:.25; cursor:default;}
   .tagline .pct{font-size:34px; font-weight:700; color:var(--ink); letter-spacing:1px;}
   .tagline .win{color:var(--c3);} .tagline .lose{color:var(--c1);}
   .tagline .warn{color:var(--c1); font-weight:700;}
@@ -268,7 +271,11 @@
     </div>
   </div>
 
-  <div class="archbar" id="archBar" style="display:none;"></div>
+  <div class="archbar" id="archBar" style="display:none;">
+    <button class="archnav-btn" id="archNavPrev" title="Önceki gün" aria-label="Önceki gün">‹</button>
+    <span id="archBarText"></span>
+    <button class="archnav-btn" id="archNavNext" title="Sonraki gün" aria-label="Sonraki gün">›</button>
+  </div>
 
   <div class="halo">
     <div class="board" id="board">
@@ -742,8 +749,26 @@ function markSeg(m){document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.
 /* sayaç yalnız günlük bulmacayı çözenlere görünür; görünmese de yeri korunur (üstte tutarlı boşluk) */
 /* sayaç yeri yalnız günlükte rezerve edilir (çözünce görünür); arşiv/antrenmanda tamamen toplanır */
 function updateCdVisibility(){const el=document.getElementById("cdPill");if(!el)return;const wrap=el.parentElement;if(mode==="daily"){wrap.style.display="";el.style.visibility=(state==="done")?"visible":"hidden";}else{wrap.style.display="none";}}
-/* arşiv no + tarih çemberin üstünde (yalnız arşiv modunda) */
-function updateArchBar(){const el=document.getElementById("archBar");if(!el)return;if(mode==="archive"&&archiveDate){el.textContent="Arşiv #"+puzzleNo(archiveDate)+" · "+fmtDate(archiveDate);el.style.display="block";}else el.style.display="none";}
+/* arşiv no + tarih çemberin üstünde + önceki/sonraki gün tuşları (yalnız arşiv modunda) */
+function archMinDs(){return ARCH_MIN_Y+"-"+String(ARCH_MIN_M+1).padStart(2,"0")+"-01";} /* en eski arşiv günü */
+function archShiftDate(ds,delta){return new Date(Date.parse(ds+"T00:00:00Z")+delta*86400000).toISOString().slice(0,10);}
+function updateArchBar(){
+  const el=document.getElementById("archBar");if(!el)return;
+  if(mode==="archive"&&archiveDate){
+    document.getElementById("archBarText").textContent="Arşiv #"+puzzleNo(archiveDate)+" · "+fmtDate(archiveDate);
+    const today=todayUTC();
+    document.getElementById("archNavPrev").disabled=!(archShiftDate(archiveDate,-1)>=archMinDs());
+    document.getElementById("archNavNext").disabled=!(archShiftDate(archiveDate,1)<today); /* sonraki gün bugünden önce olmalı */
+    el.style.display="flex";
+  }else el.style.display="none";
+}
+/* arşivde önceki/sonraki güne geç */
+function archStep(delta){
+  if(mode!=="archive"||!archiveDate)return;
+  const ds=archShiftDate(archiveDate,delta),today=todayUTC();
+  if(ds<archMinDs()||ds>=today)return; /* sınır dışı */
+  playArchiveDay(ds);
+}
 /* mod seç → doğrudan yeni tur başlat (play butonuna gerek yok) */
 function selectMode(m){
   setSeg(m);cut=null;
@@ -970,6 +995,8 @@ document.getElementById("btnHelp").onclick=()=>openModal("helpModal");
 document.getElementById("btnStats").onclick=()=>openStats();
 document.getElementById("archPrev").onclick=()=>archShift(-1);
 document.getElementById("archNext").onclick=()=>archShift(1);
+document.getElementById("archNavPrev").onclick=()=>archStep(-1);
+document.getElementById("archNavNext").onclick=()=>archStep(1);
 document.querySelectorAll("#statsSeg .seg-btn").forEach(b=>b.addEventListener("click",()=>{statsView=b.dataset.view;renderStats();}));
 document.getElementById("btnSettings").onclick=()=>{
   const cur=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';
