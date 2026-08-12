@@ -125,9 +125,10 @@
   /* ------- tagline / result ------- */
   .tagline{min-height:52px; margin-top:8px; text-align:center; font-size:16px; letter-spacing:.4px; line-height:1.5; color:var(--ink); padding:0 12px;}
   .tagline .sub{display:block; font-size:12.5px; color:var(--muted); margin-top:6px;}
-  .archbar{display:flex; align-items:center; justify-content:space-between; gap:8px; width:min(94vw,560px); margin:-2px auto 4px; font-size:13px; font-weight:700; letter-spacing:.3px; color:var(--accent);}
-  #archBarText{flex:1; text-align:center; min-width:0;}
-  .archnav-btn{background:none; border:none; color:var(--accent); font-size:22px; line-height:1; padding:2px 12px; cursor:pointer; font-family:inherit; transition:opacity .12s; flex:0 0 auto;}
+  .archbar{display:flex; align-items:center; justify-content:center; gap:12px; margin:-2px 0 4px; font-size:13px; font-weight:700; letter-spacing:.3px; color:var(--accent);}
+  #archBarText{text-align:center;}
+  .archnav-btn{background:none; border:none; color:var(--accent); padding:3px 6px; cursor:pointer; font-family:inherit; transition:opacity .12s; display:flex; align-items:center;}
+  .archnav-btn svg{width:13px; height:13px; display:block;}
   .archnav-btn:hover:not(:disabled){opacity:.7;}
   .archnav-btn:disabled{opacity:.25; cursor:default;}
   .tagline .pct{font-size:34px; font-weight:700; color:var(--ink); letter-spacing:1px;}
@@ -273,9 +274,9 @@
   </div>
 
   <div class="archbar" id="archBar" style="display:none;">
-    <button class="archnav-btn" id="archNavPrev" title="Önceki gün" aria-label="Önceki gün">‹</button>
+    <button class="archnav-btn" id="archNavPrev" title="Önceki gün" aria-label="Önceki gün"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="miter"><path d="M15 4L7 12l8 8"/></svg></button>
     <span id="archBarText"></span>
-    <button class="archnav-btn" id="archNavNext" title="Sonraki gün" aria-label="Sonraki gün">›</button>
+    <button class="archnav-btn" id="archNavNext" title="Sonraki gün" aria-label="Sonraki gün"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="miter"><path d="M9 4l8 8-8 8"/></svg></button>
   </div>
 
   <div class="halo">
