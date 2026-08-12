@@ -691,8 +691,8 @@ document.getElementById("btnAgain").addEventListener("click",function(){
 function hideScore(){}
 /* segment kontrolü: aktif butonu güncelle (mode değişkenini de set eder) */
 function setSeg(m){mode=m;document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.mode===m));}
-/* sayaç yalnız günlük bulmacayı çözenlere görünür (günlük + sonuç ekranı) */
-function updateCdVisibility(){const el=document.getElementById("cdPill");if(el)el.style.display=(mode==="daily"&&state==="done")?"inline-flex":"none";}
+/* sayaç yalnız günlük bulmacayı çözenlere görünür; görünmese de yeri korunur (üstte tutarlı boşluk) */
+function updateCdVisibility(){const el=document.getElementById("cdPill");if(el)el.style.visibility=(mode==="daily"&&state==="done")?"visible":"hidden";}
 /* mod seç → doğrudan yeni tur başlat (play butonuna gerek yok) */
 function selectMode(m){
   setSeg(m);cut=null;
