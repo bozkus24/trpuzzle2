@@ -184,8 +184,8 @@
   .stat{text-align:center; background:var(--pill); border:1px solid var(--line); border-radius:10px; padding:14px 4px;}
   .stat .n{font-size:21px; font-weight:700; color:var(--c3);}
   .stat .t{font-size:10.5px; color:var(--muted); letter-spacing:.4px; margin-top:4px;}
-  .swatches{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
-  .swatch{width:44px; height:44px; flex:0 0 auto; border-radius:10px; cursor:pointer; border:none; transition:transform .12s;}
+  .swatches{display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-top:14px;}
+  .swatch{width:100%; aspect-ratio:1; border-radius:10px; cursor:pointer; border:none; transition:transform .12s;}
   .swatch:hover{transform:translateY(-2px);}
   .swatch.sel{outline:2.5px solid var(--ink); outline-offset:2.5px;}
 
