@@ -699,7 +699,7 @@ function finalize(a,b){
     si:POOL.indexOf(shape), /* şekil indeksi — antrenman sonucunu geri yüklemek için */
     date:(roundDate&&(mode==="daily"||mode==="archive"))?roundDate:todayUTC(),
     cut:[a[0]/size,a[1]/size,b[0]/size,b[1]/size]};
-  if(mode==="daily"){saveDaily(rec);updateStats(rec);}
+  if(mode==="daily"){saveDaily(rec);updateStats(rec);saveArchive(rec);} /* günlük arşivde de 'oynandı' görünsün */
   else if(mode==="archive")saveArchive(rec); /* arşiv: sadece o güne kaydet, seriyi etkileme */
   else{updatePStats(rec);saveLastPractice(rec);} /* antrenman: seri + son sonucu sakla */
   showDone(rec,false);
