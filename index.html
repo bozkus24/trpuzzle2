@@ -334,7 +334,7 @@
   <div class="sheet">
     <button class="close" data-close>×</button>
     <h2>AYAR<span>LAR</span></h2>
-    <h3 class="sec">Görünüm</h3>
+    <h3 class="sec">Tema</h3>
     <div class="seg seg-wide" id="themeSeg">
       <button class="seg-btn" data-theme-val="light">Aydınlık</button>
       <button class="seg-btn" data-theme-val="dark">Karanlık</button>
@@ -619,7 +619,11 @@ function play(){
     if(prev){restoreDaily(prev);return;}
     roundDate=todayUTC();
     startRound(POOL[hashStr(roundDate)%POOL.length]);
-  }else startRound(pickRandom());
+  }else{
+    const prevP=loadLastPractice(); /* son antrenman sonucu varsa geri yükle (sıfırlanmasın) */
+    if(prevP&&prevP.si!=null&&POOL[prevP.si]){restorePractice(prevP);return;}
+    startRound(pickRandom());
+  }
 }
 /* arşiv: geçmiş bir günün deterministik bulmacasını oyna (günlük seriyi etkilemez) */
 function playArchiveDay(ds){
@@ -627,7 +631,25 @@ function playArchiveDay(ds){
   mode="archive";archiveDate=ds;roundDate=ds;
   document.querySelectorAll("#modeSeg .seg-btn").forEach(b=>b.classList.remove("active"));
   hideScore();updateCdVisibility();refreshStreakPill();
+  const prev=loadArchive(ds); /* daha önce oynandıysa çözülmüş halini + skoru göster */
+  if(prev){restoreArchive(prev,ds);return;}
   startRound(POOL[hashStr(ds)%POOL.length]);
+}
+function restorePractice(prev){
+  if(prev.minor===undefined&&prev.minPct!=null){const sc=scoreOf(prev.minPct);prev.minor=sc.minor;prev.major=sc.major;prev.win=sc.win;prev.label=sc.label;}
+  prev.mode="practice";
+  shape=POOL[prev.si];fitShape();
+  window._last=prev;
+  if(prev.cut){const c=prev.cut.map(v=>v*size);cut={A:[c[0],c[1]],N:[-(c[3]-c[1]),(c[2]-c[0])],p1:[c[0],c[1]],p2:[c[2],c[3]]};}
+  showDone(prev,true);
+}
+function restoreArchive(prev,ds){
+  if(prev.minor===undefined&&prev.minPct!=null){const sc=scoreOf(prev.minPct);prev.minor=sc.minor;prev.major=sc.major;prev.win=sc.win;prev.label=sc.label;}
+  prev.mode="archive";
+  shape=POOL[hashStr(ds)%POOL.length];fitShape();
+  window._last=prev;
+  if(prev.cut){const c=prev.cut.map(v=>v*size);cut={A:[c[0],c[1]],N:[-(c[3]-c[1]),(c[2]-c[0])],p1:[c[0],c[1]],p2:[c[2],c[3]]};}
+  showDone(prev,true);
 }
 /* Skor: kişi tam ortadan bölmeye çalışır. Azınlık taraf yüzdesine göre 6 kazanç kademesi:
    50:50, 51:49, 52:48, 53:47, 54:46, 55:45 — daha kötüsü (56:44 ve ötesi) kayıp. */
@@ -646,11 +668,12 @@ function finalize(a,b){
   const sc=scoreOf(minPct);
   cut={A:[a[0],a[1]],N:N,p1:[a[0],a[1]],p2:[b[0],b[1]]};
   const rec={minPct,minor:sc.minor,major:sc.major,win:sc.win,label:sc.label,name:shape.n,mode:mode,
+    si:POOL.indexOf(shape), /* şekil indeksi — antrenman sonucunu geri yüklemek için */
     date:(roundDate&&(mode==="daily"||mode==="archive"))?roundDate:todayUTC(),
     cut:[a[0]/size,a[1]/size,b[0]/size,b[1]/size]};
   if(mode==="daily"){saveDaily(rec);updateStats(rec);}
   else if(mode==="archive")saveArchive(rec); /* arşiv: sadece o güne kaydet, seriyi etkileme */
-  else updatePStats(rec); /* antrenman: art arda düzgün kesim serisi */
+  else{updatePStats(rec);saveLastPractice(rec);} /* antrenman: seri + son sonucu sakla */
   showDone(rec,false);
 }
 function showDone(rec,restored){
@@ -659,7 +682,7 @@ function showDone(rec,restored){
   const parts=[];
   if(mode==="archive")parts.push('Arşiv #'+puzzleNo(archiveDate||rec.date));
   else{const st=(mode==="daily"?getStats():getPStats()).streak||0; if(st>0)parts.push(FLAME+'Seri '+st);}
-  if(restored)parts.push('bugün oynandı');
+  if(restored&&mode==="daily")parts.push('bugün oynandı');
   const subHtml=parts.length?('<span class="sub">'+parts.join(' · ')+'</span>'):'';
   tagline.innerHTML='<span class="pct">'+rec.major+' : '+rec.minor+'</span><br>'+
     '<span class="'+(rec.win?'win':'lose')+'">'+rec.label+'</span>'+subHtml;
@@ -714,6 +737,9 @@ function loadDaily(){try{return JSON.parse(localStorage.getItem("kesme2-day-"+to
 /* arşiv kaydı: her geçmiş gün için en iyi sonucu sakla (seriyi etkilemez) */
 function saveArchive(r){try{const ex=loadArchive(r.date);if(!ex||(r.minor||0)>(ex.minor||0))localStorage.setItem("kesme2-arch-"+r.date,JSON.stringify(r));}catch(e){}}
 function loadArchive(d){try{return JSON.parse(localStorage.getItem("kesme2-arch-"+d));}catch(e){return null;}}
+/* son antrenman sonucu (moda geçince geri yüklenir) */
+function saveLastPractice(r){try{localStorage.setItem("kesme2-practice-last",JSON.stringify(r));}catch(e){}}
+function loadLastPractice(){try{return JSON.parse(localStorage.getItem("kesme2-practice-last"));}catch(e){return null;}}
 /* arşiv listesi: dün → 10 gün öncesi (yeni → eski) */
 /* takvim görünümü: her günün kutusunda o güne ait şeklin küçük hali */
 const ARCH_MONTHS=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
