@@ -140,6 +140,7 @@
   button.act.primary{background:var(--accent); border-color:var(--accent); color:#221204;}
   button.act.primary:hover{filter:brightness(1.1); color:#221204;}
   button.act:active{transform:translateY(1px);}
+  .nx{font-size:1.5em; line-height:0; vertical-align:-2px; margin-left:2px;} /* 'SONRAKİ' ileri oku büyük */
 
   footer{color:#748399; font-size:11px; padding:0 18px 26px; text-align:center; max-width:560px; line-height:1.6;}
   footer a{color:#748399;}
@@ -663,7 +664,10 @@ function showDone(rec,restored){
     '<span class="'+(rec.win?'win':'lose')+'">'+rec.label+'</span>'+subHtml;
   refreshStreakPill();
   actions.classList.remove("hide");
-  document.getElementById("btnAgain").textContent = mode==="daily" ? (DAILY_UNLIMITED?"↻ TEKRAR OYNA":"↻ ANTRENMAN") : (mode==="practice" ? "SONRAKİ →" : "↻ YENİDEN");
+  const _ba=document.getElementById("btnAgain");
+  if(mode==="daily")_ba.textContent=DAILY_UNLIMITED?"↻ TEKRAR OYNA":"↻ ANTRENMAN";
+  else if(mode==="practice")_ba.innerHTML='SONRAKİ <span class="nx">→</span>';
+  else _ba.textContent="↻ YENİDEN";
   document.getElementById("btnShare").style.display = (mode==="practice") ? "none" : ""; /* antrenmanda paylaş yok */
   window._last=rec;
   if(restored){cutT=1;sepT=1;draw();}    /* kayıtlı sonuç: ayrık göster, animasyon yok */
