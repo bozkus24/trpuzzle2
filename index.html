@@ -615,7 +615,7 @@ function invalidCut(){
 function play(){
   archiveDate=null; /* günlük/antrenman → arşiv değil */
   if(mode==="daily"){
-    const prev=DAILY_UNLIMITED?null:loadDaily();
+    const prev=loadDaily(); /* bugünkü günlük çözüldüyse geri yükle (moda geçince sıfırlanmasın) */
     if(prev){restoreDaily(prev);return;}
     roundDate=todayUTC();
     startRound(POOL[hashStr(roundDate)%POOL.length]);
@@ -813,19 +813,18 @@ function renderStats(){
   document.getElementById("stPlayed").textContent=s.played||0;
   document.getElementById("stStreak").textContent=s.streak||0;
   document.getElementById("stMax").textContent=s.maxStreak||0;
-  /* son sonuç başlığı — kendi moduna göre; yalnız görüntülenen modla eşleşiyorsa dağılımı vurgula */
-  const rh=document.getElementById("resultHead"),r=window._last;
-  if(r){
-    document.getElementById("rhRatio").innerHTML='<span>'+r.major+'</span><span class="sep">:</span><span class="hl">'+r.minor+'</span>';
+  /* başlık, görüntülenen sekmeye ait sonucu gösterir: günlük → bugünkü günlük, antrenman → son antrenman */
+  const rh=document.getElementById("resultHead");
+  let rec = isDaily ? loadDaily() : ((window._last&&window._last.mode==="practice")?window._last:null);
+  if(rec){
+    if(rec.minor===undefined&&rec.minPct!=null){const sc=scoreOf(rec.minPct);rec.minor=sc.minor;rec.major=sc.major;rec.win=sc.win;} /* eski kayıt güvenliği */
+    document.getElementById("rhRatio").innerHTML='<span>'+rec.major+'</span><span class="sep">:</span><span class="hl">'+rec.minor+'</span>';
     const sub=document.getElementById("rhSub");
-    let subTxt="";
-    if(r.mode==="archive"&&r.date)subTxt="Arşiv · Kesme #"+puzzleNo(r.date)+" · "+fmtDate(r.date);
-    else if(r.mode==="daily"&&r.date&&statsView==="daily")subTxt="Kesme #"+puzzleNo(r.date)+" · "+fmtDate(r.date);
-    /* antrenman: alt yazı yok — mod ve istatistikler zaten görünüyor */
+    const subTxt=(isDaily&&rec.date)?("Kesme #"+puzzleNo(rec.date)+" · "+fmtDate(rec.date)):""; /* antrenmanda alt yazı yok */
     sub.textContent=subTxt;sub.style.display=subTxt?"":"none";
     rh.style.display="block";
   }else rh.style.display="none";
-  const curKey=(r&&r.mode===statsView)?(r.win?r.minor:'loss'):null;
+  const curKey=rec?(rec.win?rec.minor:'loss'):null;
   renderDist(curKey,s.dist);
   document.getElementById("btnShareModal").style.display=(statsView==="practice")?"none":""; /* antrenmanda paylaş yok */
 }
