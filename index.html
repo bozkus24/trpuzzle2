@@ -663,7 +663,7 @@ function showDone(rec,restored){
     '<span class="'+(rec.win?'win':'lose')+'">'+rec.label+'</span>'+subHtml;
   refreshStreakPill();
   actions.classList.remove("hide");
-  document.getElementById("btnAgain").textContent = mode==="daily" ? (DAILY_UNLIMITED?"↻ TEKRAR OYNA":"↻ ANTRENMAN") : (mode==="practice" ? "↻ SONRAKİ" : "↻ YENİDEN");
+  document.getElementById("btnAgain").textContent = mode==="daily" ? (DAILY_UNLIMITED?"↻ TEKRAR OYNA":"↻ ANTRENMAN") : (mode==="practice" ? "SONRAKİ →" : "↻ YENİDEN");
   document.getElementById("btnShare").style.display = (mode==="practice") ? "none" : ""; /* antrenmanda paylaş yok */
   window._last=rec;
   if(restored){cutT=1;sepT=1;draw();}    /* kayıtlı sonuç: ayrık göster, animasyon yok */
