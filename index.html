@@ -663,7 +663,8 @@ function showDone(rec,restored){
     '<span class="'+(rec.win?'win':'lose')+'">'+rec.label+'</span>'+subHtml;
   refreshStreakPill();
   actions.classList.remove("hide");
-  document.getElementById("btnAgain").textContent = mode==="daily" ? (DAILY_UNLIMITED?"↻ TEKRAR OYNA":"↻ ANTRENMAN") : "↻ YENİDEN";
+  document.getElementById("btnAgain").textContent = mode==="daily" ? (DAILY_UNLIMITED?"↻ TEKRAR OYNA":"↻ ANTRENMAN") : (mode==="practice" ? "↻ SONRAKİ" : "↻ YENİDEN");
+  document.getElementById("btnShare").style.display = (mode==="practice") ? "none" : ""; /* antrenmanda paylaş yok */
   window._last=rec;
   if(restored){cutT=1;sepT=1;draw();}    /* kayıtlı sonuç: ayrık göster, animasyon yok */
   else{cutT=0;sepT=0;animateCut();}      /* taze kesim: önce bıçak, sonra ayrılma */
@@ -817,6 +818,7 @@ function renderStats(){
   }else rh.style.display="none";
   const curKey=(r&&r.mode===statsView)?(r.win?r.minor:'loss'):null;
   renderDist(curKey,s.dist);
+  document.getElementById("btnShareModal").style.display=(statsView==="practice")?"none":""; /* antrenmanda paylaş yok */
 }
 function openStats(view){statsView=(view==="practice"||view==="daily")?view:(mode==="daily"?"daily":"practice");renderStats();openModal("statsModal");}
 /* seri artık üstte gösterilmiyor; sonuç ekranı altındaki 'Seri N' yeterli */
