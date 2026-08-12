@@ -52,16 +52,16 @@
   }
   .tb-left{justify-self:start; display:flex; gap:2px;} .tb-right{justify-self:end; display:flex; gap:2px;}
   .tb-center{justify-self:center; display:flex; align-items:baseline; gap:16px;}
-  .brand-logo{height:48px; width:auto; max-width:150px; display:block; object-fit:contain;}
+  .brand-logo{height:56px; width:auto; max-width:170px; display:block; object-fit:contain;}
   .iconbtn{
     background:none; border:none; padding:8px; border-radius:8px; cursor:pointer;
     color:var(--muted); display:flex; align-items:center; gap:4px; transition:color .15s;
   }
   .iconbtn:hover{color:var(--ink);}
-  .iconbtn svg{width:20px; height:20px;}
+  .iconbtn svg{width:23px; height:23px;}
   .chev{font-size:10px; color:var(--muted);}
   .wordmark{
-    font-size:34px; font-weight:700; letter-spacing:5px; line-height:1; user-select:none;
+    font-size:39px; font-weight:700; letter-spacing:5px; line-height:1; user-select:none;
   }
   .wordmark .w1{color:var(--ink);}
   .wordmark .w2{color:var(--accent);}
@@ -193,7 +193,8 @@
   .arch-top h2{margin:0;}
   .arch-nav{display:flex; align-items:center; gap:4px;}
   .arch-navbtn{background:var(--pill); border:1px solid var(--line); color:var(--ink); border-radius:8px;
-    width:30px; height:30px; font-size:18px; line-height:1; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center;}
+    width:30px; height:30px; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:center;}
+  .arch-navbtn svg{width:13px; height:13px; display:block;}
   .arch-navbtn:hover:not(:disabled){border-color:var(--accent); color:var(--accent);}
   .arch-navbtn:disabled{opacity:.3; cursor:default;}
   .arch-month{font-size:13px; font-weight:700; min-width:104px; text-align:center; color:var(--ink);}
@@ -220,11 +221,11 @@
   }
 
   @media(max-width:560px){
-    .wordmark{font-size:22px; letter-spacing:2px;}
+    .wordmark{font-size:25px; letter-spacing:2px;}
     .topbar-inner{padding:11px 10px; column-gap:6px;}
     .iconbtn{padding:7px 3px;}
-    .iconbtn svg{width:18px; height:18px;}
-    .brand-logo{height:42px;}
+    .iconbtn svg{width:21px; height:21px;}
+    .brand-logo{height:48px;}
     .seg-btn{padding:8px 16px; font-size:12px;}
     .statusbar{gap:8px; padding:0 12px;}   /* segment ortada, altında ortalı sayaç */
   }
@@ -369,9 +370,9 @@
     <div class="arch-top">
       <h2>AR<span>ŞİV</span></h2>
       <div class="arch-nav">
-        <button class="arch-navbtn" id="archPrev" title="Önceki ay" aria-label="Önceki ay">‹</button>
+        <button class="arch-navbtn" id="archPrev" title="Önceki ay" aria-label="Önceki ay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="miter"><path d="M15 4L7 12l8 8"/></svg></button>
         <span class="arch-month" id="archMonthLbl">—</span>
-        <button class="arch-navbtn" id="archNext" title="Sonraki ay" aria-label="Sonraki ay">›</button>
+        <button class="arch-navbtn" id="archNext" title="Sonraki ay" aria-label="Sonraki ay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="miter"><path d="M9 4l8 8-8 8"/></svg></button>
       </div>
     </div>
     <div class="arch-weekdays"><span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span></div>
