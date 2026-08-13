@@ -892,6 +892,7 @@ function renderDist(curKey,d){
   document.getElementById('dist').innerHTML=tiers.map(t=>row(t,t)).join('')+row('&lt;','loss');
 }
 let statsView="daily"; /* sonuç ekranında görüntülenen mod (oyun modundan bağımsız) */
+let statsRec=null;      /* istatistik ekranında gösterilen sonuç kaydı */
 function setStatsSeg(){document.querySelectorAll("#statsSeg .seg-btn").forEach(b=>b.classList.toggle("active",b.dataset.view===statsView));}
 function renderStats(){
   const isDaily=(statsView==="daily");
@@ -914,9 +915,10 @@ function renderStats(){
     sub.textContent=subTxt;sub.style.display=subTxt?"":"none";
     rh.style.display="block";
   }else rh.style.display="none";
+  statsRec=rec; /* ekranda gösterilen sonuç — paylaş butonu bunu paylaşır */
   const curKey=rec?(rec.win?rec.minor:'loss'):null;
   renderDist(curKey,s.dist);
-  document.getElementById("btnShareModal").style.display=(statsView==="practice")?"none":""; /* antrenmanda paylaş yok */
+  document.getElementById("btnShareModal").style.display=(rec&&statsView!=="practice")?"":"none"; /* sonuç varsa ve antrenman değilse paylaş */
 }
 function openStats(view){statsView=(view==="practice"||view==="daily")?view:(mode==="daily"?"daily":"practice");renderStats();openModal("statsModal");}
 /* seri artık üstte gösterilmiyor; sonuç ekranı altındaki 'Seri N' yeterli */
@@ -929,15 +931,20 @@ function scoreBar(rec){
   const f=rec.minor-44; /* 1..6 */
   return "🟩".repeat(f)+"⬛".repeat(6-f);
 }
-function shareResult(btn){
-  const r=window._last;if(!r)return;
-  const head=(mode==="daily")?("KESME "+(r.date||todayUTC())):"KESME (antrenman)";
-  const st=(mode==="daily"?getStats():getPStats()).streak||0;
-  const txt=head+"\n"+r.major+":"+r.minor+" "+(r.win?"✅":"❌")+"\n"+scoreBar(r)+(st>0?("\nSeri: "+st):"");
+/* belirli bir sonuç kaydını paylaş (kendi moduna göre başlık) */
+function shareRecord(r,btn){
+  if(!r)return;
+  let head;
+  if(r.mode==="archive")head="KESME · Arşiv #"+puzzleNo(r.date)+" ("+fmtDate(r.date)+")";
+  else if(r.mode==="daily")head="KESME "+(r.date||todayUTC());
+  else head="KESME · Antrenman";
+  const st=(r.mode==="daily"?getStats():getPStats()).streak||0;
+  const streakLine=(r.mode!=="archive"&&st>0)?("\nSeri: "+st):"";
+  const txt=head+"\n"+r.major+":"+r.minor+" "+(r.win?"✅":"❌")+"\n"+scoreBar(r)+streakLine;
   if(navigator.share)navigator.share({text:txt}).catch(()=>copy(txt,btn));else copy(txt,btn);
 }
-document.getElementById("btnShare").addEventListener("click",function(){shareResult(this);});
-document.getElementById("btnShareModal").addEventListener("click",function(){shareResult(this);});
+document.getElementById("btnShare").addEventListener("click",function(){shareRecord(window._last,this);});      /* oyun sonu: mevcut oyunu paylaş */
+document.getElementById("btnShareModal").addEventListener("click",function(){shareRecord(statsRec,this);});    /* istatistik: gösterilen sonucu paylaş */
 function copiedFeedback(btn){
   const b=btn||document.getElementById("btnShare");const o=b.textContent;
   b.textContent="KOPYALANDI!";setTimeout(()=>b.textContent=o,1300);
@@ -1013,7 +1020,7 @@ document.querySelectorAll("#cvdSeg .seg-btn").forEach(b=>b.addEventListener("cli
 /* ---------- pencereler ---------- */
 function openModal(id){document.getElementById(id).classList.add("show");}
 document.getElementById("btnHelp").onclick=()=>openModal("helpModal");
-document.getElementById("btnStats").onclick=()=>openStats();
+document.getElementById("btnStats").onclick=()=>openStats("daily"); /* ikon: hep günün sonucu + günlük istatistik */
 document.getElementById("archPrev").onclick=()=>archShift(-1);
 document.getElementById("archNext").onclick=()=>archShift(1);
 document.getElementById("archNavPrev").onclick=()=>archStep(-1);
