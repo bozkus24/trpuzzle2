@@ -162,6 +162,8 @@
   .sheet .hint{display:block; margin-top:5px; padding-left:10px; border-left:2px solid var(--line); font-size:12px; color:var(--muted); line-height:1.55;}
   .hint-dot{display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:middle; margin:0 1px;}
   .hint-dot.win{background:#16a34a;} .hint-dot.lose{background:#dc2626;}
+  .help-check{display:flex; align-items:center; gap:8px; margin-top:16px; font-size:13px; color:var(--ink); cursor:pointer; user-select:none;}
+  .help-check input{width:17px; height:17px; accent-color:var(--accent); cursor:pointer;}
   .sheet .muted{color:var(--muted); font-size:12.5px;}
   .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; margin:-10px -8px 0 0;}
   .result-head{text-align:center; margin:2px 0 6px;}
@@ -323,6 +325,8 @@
         <span class="hint">Günlük serinizi ve istatistiklerinizi etkilemez. Oynanan günler arşive kaydedilir; kazandığınız her oyun için <span class="hint-dot win"></span>, kaybettiğiniz her oyun için <span class="hint-dot lose"></span> gösterilir.</span>
       </li>
     </ul>
+    <label class="help-check"><input type="checkbox" id="helpDontShow"> Bir daha gösterme</label>
+    <button class="act primary" id="helpGotIt" style="width:100%; margin-top:10px;">Anladım</button>
   </div>
 </div>
 
@@ -1032,9 +1036,14 @@ document.getElementById("btnSettings").onclick=()=>{
   markCvdSeg(document.documentElement.getAttribute('data-cvd')==='on'?'on':'off');
   openModal("settingsModal");
 };
-function closeModal(m){m.classList.remove("show");if(m.id==="archiveModal")markSeg(mode);} /* arşiv iptal edilirse segment mevcut moda döner */
+function closeModal(m){
+  m.classList.remove("show");
+  if(m.id==="archiveModal")markSeg(mode); /* arşiv iptal edilirse segment mevcut moda döner */
+  if(m.id==="helpModal"){const cb=document.getElementById("helpDontShow");if(cb&&cb.checked)try{localStorage.setItem('kesme-help-seen','1');}catch(e){}} /* 'bir daha gösterme' */
+}
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.closest(".modal")));
 document.querySelectorAll(".modal").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModal(m);}));
+document.getElementById("helpGotIt").onclick=()=>closeModal(document.getElementById("helpModal"));
 
 /* ---------- geri sayım ---------- */
 function pad2(n){return String(n).padStart(2,"0");}
@@ -1075,6 +1084,9 @@ function cdTick(){
     dr.style.display="block";dr.addEventListener("click",resetDailyDev);
   }
   cdTick();setInterval(cdTick,1000);
+  /* ilk ziyarette 'nasıl oynanır' otomatik açılır (kullanıcı 'bir daha gösterme' + Anladım derse kapanır) */
+  let helpSeen=null;try{helpSeen=localStorage.getItem('kesme-help-seen');}catch(e){}
+  if(helpSeen!=='1')openModal("helpModal");
 })();
 window.addEventListener("resize",resize);
 })();
