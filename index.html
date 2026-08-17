@@ -156,14 +156,19 @@
   .modal.show{display:flex;}
   .sheet{background:var(--sheet); border:1px solid var(--line); border-radius:16px; max-width:460px; width:100%; padding:26px; max-height:88vh; overflow:auto;}
   .sheet h2{margin:0 0 16px; font-size:19px; letter-spacing:2px;}
+  #helpModal h2{text-align:center;}
   .sheet h2 span{color:var(--accent);}
   .sheet p,.sheet li{font-size:13.5px; line-height:1.7; color:var(--ink);}
   .sheet li{margin-bottom:6px;}
   .sheet .hint{display:block; margin-top:5px; padding-left:10px; border-left:2px solid var(--line); font-size:12px; color:var(--muted); line-height:1.55;}
   .hint-dot{display:inline-block; width:9px; height:9px; border-radius:50%; vertical-align:middle; margin:0 1px;}
   .hint-dot.win{background:#16a34a;} .hint-dot.lose{background:#dc2626;}
-  .help-check{display:flex; align-items:center; gap:8px; margin-top:16px; font-size:13px; color:var(--ink); cursor:pointer; user-select:none;}
+  .help-check{display:none; align-items:center; gap:8px; margin-top:16px; font-size:13px; color:var(--ink); cursor:pointer; user-select:none;}
   .help-check input{width:17px; height:17px; accent-color:var(--accent); cursor:pointer;}
+  #helpGotIt{display:none;}
+  /* 'bir daha gösterme' + Anladım yalnız ilk açılış pop-up'ında görünür */
+  #helpModal.intro .help-check{display:flex;}
+  #helpModal.intro #helpGotIt{display:block;}
   .sheet .muted{color:var(--muted); font-size:12.5px;}
   .sheet .close{float:right; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; margin:-10px -8px 0 0;}
   .result-head{text-align:center; margin:2px 0 6px;}
@@ -1023,7 +1028,7 @@ document.querySelectorAll("#cvdSeg .seg-btn").forEach(b=>b.addEventListener("cli
 
 /* ---------- pencereler ---------- */
 function openModal(id){document.getElementById(id).classList.add("show");}
-document.getElementById("btnHelp").onclick=()=>openModal("helpModal");
+document.getElementById("btnHelp").onclick=()=>{document.getElementById("helpModal").classList.remove("intro");openModal("helpModal");}; /* yardım ikonu: sade nasıl oynanır */
 document.getElementById("btnStats").onclick=()=>openStats("daily"); /* ikon: hep günün sonucu + günlük istatistik */
 document.getElementById("archPrev").onclick=()=>archShift(-1);
 document.getElementById("archNext").onclick=()=>archShift(1);
@@ -1086,7 +1091,7 @@ function cdTick(){
   cdTick();setInterval(cdTick,1000);
   /* ilk ziyarette 'nasıl oynanır' otomatik açılır (kullanıcı 'bir daha gösterme' + Anladım derse kapanır) */
   let helpSeen=null;try{helpSeen=localStorage.getItem('kesme-help-seen');}catch(e){}
-  if(helpSeen!=='1')openModal("helpModal");
+  if(helpSeen!=='1'){document.getElementById("helpModal").classList.add("intro");openModal("helpModal");}
 })();
 window.addEventListener("resize",resize);
 })();
