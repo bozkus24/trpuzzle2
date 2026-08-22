@@ -937,6 +937,8 @@ function updatePStats(rec){
 function puzzleNo(dateStr){try{const ep=Date.parse('2026-08-01T00:00:00Z');return Math.floor((Date.parse(dateStr+'T00:00:00Z')-ep)/86400000)+1;}catch(e){return 1;}}
 /* tarih: "2026-08-10" → "10 Ağustos 2026" */
 function fmtDate(ds){try{const p=ds.split("-");return parseInt(p[2],10)+" "+ARCH_MONTHS[parseInt(p[1],10)-1]+" "+p[0];}catch(e){return ds;}}
+/* tarih: "2026-08-10" → "10-08-2026" (gün-ay-yıl) */
+function fmtDateNum(ds){try{const p=ds.split("-");return p[2]+"-"+p[1]+"-"+p[0];}catch(e){return ds;}}
 function renderDist(curKey,d){
   d=d||{};
   const tiers=[50,49,48,47,46,45];
@@ -991,13 +993,15 @@ function scoreBar(rec){
 /* belirli bir sonuç kaydını paylaş (kendi moduna göre başlık) */
 function shareRecord(r,btn){
   if(!r)return;
-  let head;
-  if(r.mode==="archive")head="KESME · Arşiv #"+puzzleNo(r.date)+" ("+fmtDate(r.date)+")";
-  else if(r.mode==="daily")head="KESME "+(r.date||todayUTC());
-  else head="KESME · Antrenman";
-  const st=(r.mode==="daily"?getStats():getPStats()).streak||0;
-  const streakLine=(r.mode!=="archive"&&st>0)?("\nSeri: "+st):"";
-  const txt=head+"\n"+r.major+":"+r.minor+" "+(r.win?"✅":"❌")+"\n"+scoreBar(r)+streakLine;
+  const LINK="https://trpuzzle.com/kesme/";
+  const ratio=r.minor+":"+r.major;                 /* x:100-x (azınlık:çoğunluk) */
+  let txt;
+  if(r.mode==="daily"||r.mode==="archive"){
+    const ds=r.date||todayUTC();
+    txt="Kesme #"+puzzleNo(ds)+" ✂️ "+ratio+" ✂️ ("+fmtDateNum(ds)+") - "+LINK;
+  }else{                                             /* antrenman: numara/tarih yok */
+    txt="Kesme · Antrenman ✂️ "+ratio+" ✂️ - "+LINK;
+  }
   if(navigator.share)navigator.share({text:txt}).catch(()=>copy(txt,btn));else copy(txt,btn);
 }
 document.getElementById("btnShare").addEventListener("click",function(){shareRecord(window._last,this);});      /* oyun sonu: mevcut oyunu paylaş */
