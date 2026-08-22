@@ -96,6 +96,7 @@
   }
   .tb-left{justify-self:start; display:flex; gap:2px;} .tb-right{justify-self:end; display:flex; gap:10px;}
   .tb-center{justify-self:center; display:flex; align-items:baseline; gap:16px;}
+  .brand-link{display:inline-flex; align-items:center; text-decoration:none; cursor:pointer;}
   .brand-logo{height:56px; width:auto; max-width:170px; display:block; object-fit:contain;}
   .iconbtn{
     background:none; border:none; padding:8px; border-radius:8px; cursor:pointer;
@@ -296,7 +297,7 @@
 <header class="topbar">
  <div class="topbar-inner">
   <div class="tb-left">
-    <img class="brand-logo" src="logo.png" alt="Kesme">
+    <a class="brand-link" href="/" aria-label="Ana sayfaya dön" title="Ana sayfa"><img class="brand-logo" src="logo.png" alt="Kesme"></a>
   </div>
   <div class="tb-center">
     <div class="wordmark"><span class="w1">KES</span><span class="w2">ME</span></div>
