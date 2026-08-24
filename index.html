@@ -76,7 +76,7 @@
     --cutline:#2a2440;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{margin:0; padding:0;}
+  html,body{margin:0; padding:0; touch-action:manipulation;} /* çift dokunuşla yakınlaştırmayı kapat (iOS) */
   body{
     background:var(--bg);
     color:var(--ink);
@@ -85,9 +85,9 @@
     -webkit-font-smoothing:antialiased; transition:background .25s, color .25s;
   }
 
-  /* ------- top bar (en üstte sabit) ------- */
+  /* ------- top bar (sayfa ile birlikte kayar) ------- */
   .topbar{
-    position:sticky; top:0; z-index:20; width:100%;
+    width:100%;
     background:var(--pill); border-bottom:1px solid var(--line);
   }
   .topbar-inner{
@@ -938,6 +938,8 @@ function updatePStats(rec){
 function puzzleNo(dateStr){try{const ep=Date.parse('2026-08-01T00:00:00Z');return Math.floor((Date.parse(dateStr+'T00:00:00Z')-ep)/86400000)+1;}catch(e){return 1;}}
 /* tarih: "2026-08-10" → "10 Ağustos 2026" */
 function fmtDate(ds){try{const p=ds.split("-");return parseInt(p[2],10)+" "+ARCH_MONTHS[parseInt(p[1],10)-1]+" "+p[0];}catch(e){return ds;}}
+/* tarih: "2026-08-10" → "10-08-2026" (gün-ay-yıl) */
+function fmtDateNum(ds){try{const p=ds.split("-");return p[2]+"-"+p[1]+"-"+p[0];}catch(e){return ds;}}
 function renderDist(curKey,d){
   d=d||{};
   const tiers=[50,49,48,47,46,45];
@@ -992,13 +994,15 @@ function scoreBar(rec){
 /* belirli bir sonuç kaydını paylaş (kendi moduna göre başlık) */
 function shareRecord(r,btn){
   if(!r)return;
-  let head;
-  if(r.mode==="archive")head="KESME · Arşiv #"+puzzleNo(r.date)+" ("+fmtDate(r.date)+")";
-  else if(r.mode==="daily")head="KESME "+(r.date||todayUTC());
-  else head="KESME · Antrenman";
-  const st=(r.mode==="daily"?getStats():getPStats()).streak||0;
-  const streakLine=(r.mode!=="archive"&&st>0)?("\nSeri: "+st):"";
-  const txt=head+"\n"+r.major+":"+r.minor+" "+(r.win?"✅":"❌")+"\n"+scoreBar(r)+streakLine;
+  const LINK="https://trpuzzle.com/kesme/";
+  const ratio=r.minor+":"+r.major;                 /* x:100-x (azınlık:çoğunluk) */
+  let txt;
+  if(r.mode==="daily"||r.mode==="archive"){
+    const ds=r.date||todayUTC();
+    txt="Kesme #"+puzzleNo(ds)+" ✂️ "+ratio+" ✂️ ("+fmtDateNum(ds)+") - "+LINK;
+  }else{                                             /* antrenman: numara/tarih yok */
+    txt="Kesme · Antrenman ✂️ "+ratio+" ✂️ - "+LINK;
+  }
   if(navigator.share)navigator.share({text:txt}).catch(()=>copy(txt,btn));else copy(txt,btn);
 }
 document.getElementById("btnShare").addEventListener("click",function(){shareRecord(window._last,this);});      /* oyun sonu: mevcut oyunu paylaş */
@@ -1149,8 +1153,6 @@ window.addEventListener("resize",resize);
 <section class="tp-bilgi" id="bilgi">
   <h1>Kesme: günün şeklini tam ortadan bölme bulmacası</h1>
   <p>Kesme, göz kararı ile geometrik sezginin oyunudur: ekrana gelen şekli <strong>tek bir düz çizgiyle</strong> mümkün olduğunca <strong>50:50</strong> oranında ikiye bölmeye çalışırsın. Kulağa kolay geliyor — ta ki karşına içi delikli, çarpık, dallı budaklı bir şekil çıkana kadar.</p>
-  <h2>Nasıl oynanır?</h2>
-  <p>Çemberin içinde herhangi bir noktaya basılı tut ve çizgiyi kesmek istediğin doğrultuda sürükleyip bırak. Çizgin şeklin bir tarafından girip diğer tarafından çıkmalıdır. Skorun, oluşan iki parçanın oranıdır: <strong>50:50 ile 55:45 arası kazanır</strong>; daha dengesiz her kesim kaybettirir. Günlük modda herkes aynı şekli keser ve üst üste kazanılan günler serini büyütür; Antrenman modunda sınırsız şekil üzerinde pratik yapabilir, Arşiv'den geçmiş günleri oynayabilirsin.</p>
   <h2>İyi kesmenin sırları</h2>
   <ul>
     <li><strong>Alanı oku, hatları değil:</strong> Gözün kenar çizgilerine takılır ama önemli olan iki taraftaki alan. Şeklin "ağır" bölgelerini (geniş gövdeleri) zihninde tart.</li>
