@@ -11,8 +11,7 @@ oluşan 100 ayrı tasarım günlük oyunda ve antrenmanda kullanılır.
 - **Günlük sıra:** Türkiye takvimine göre 2 Ekim 2026'da Kahkaha kulübü ile başlar;
   9 Ocak 2027'de Yüzüncü gün pastası ile 100. şekle ulaşır. Bu sürede tekrar yoktur.
   10 Ocak 2027'de aynı 100 günlük döngü yeniden başlar.
-- **Antrenman:** 100 şekli karışık sırayla sunar; torba bitmeden tekrar etmez.
-  Sıra tarayıcıda saklanır. İki torba arasında da arka arkaya aynı şekil gelmez.
+- **Antrenman:** Mevcut rastgele seçim davranışıyla 100 şeklin tamamını kullanır.
 - **Boşluklar:** Göz, ağız, kulp ve iç içe konturlar gerçek boşluklardır;
   çizimde, kesim kontrolünde, alan hesabında ve arşiv küçük resimlerinde korunur.
 - **Eski oyunlar:** 2 Ekim öncesi arşiv ve daha önce tamamlanmış günlük/antrenman
