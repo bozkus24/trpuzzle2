@@ -1355,7 +1355,7 @@ function loadLastPractice(){try{return JSON.parse(localStorage.getItem("kesme2-p
 /* arşiv listesi: dün → 10 gün öncesi (yeni → eski) */
 /* takvim görünümü: her günün kutusunda o güne ait şeklin küçük hali */
 const ARCH_MONTHS=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
-const ARCH_MIN_Y=2026, ARCH_MIN_M=7; /* en eski gezilebilir ay: Ağustos 2026 (arşiv başlangıcı) */
+const ARCH_MIN_Y=2026, ARCH_MIN_M=9; /* en eski arşiv günü: 1 Ekim 2026 */
 let archY=null, archM=null;           /* görüntülenen ay (UTC yıl / 0-tabanlı ay) */
 /* polygonu box×box viewBox içine ortalayıp sığdır (fitShape ile aynı mantık) */
 function shapePts(p,box,pad){

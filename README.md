@@ -12,6 +12,8 @@ oluşan 100 ayrı tasarım günlük oyunda ve antrenmanda kullanılır.
   9 Ocak 2027'de Yüzüncü gün pastası ile 100. şekle ulaşır. Bu sürede tekrar yoktur.
   10 Ocak 2027'de aynı 100 günlük döngü yeniden başlar.
 - **Antrenman:** Mevcut rastgele seçim davranışıyla 100 şeklin tamamını kullanır.
+- **Arşiv:** 1 Ekim 2026'dan başlar; takvimde ve gün geçişinde daha eski tarihlere
+  gidilemez. Mevcut günlük şekil sırası ve kayıtlar korunur.
 - **Boşluklar:** Göz, ağız, kulp ve iç içe konturlar gerçek boşluklardır;
   çizimde, kesim kontrolünde, alan hesabında ve arşiv küçük resimlerinde korunur.
 - **Eski oyunlar:** 2 Ekim öncesi arşiv ve daha önce tamamlanmış günlük/antrenman
